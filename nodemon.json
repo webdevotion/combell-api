@@ -1,0 +1,7 @@
+{
+  "verbose": false,
+  "watch": ["dist"],
+  "delay": "500ms",
+  "exec": "./run.sh",
+  "ignore": ["*.test.js", "fixtures/*"]
+}
