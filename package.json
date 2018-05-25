@@ -1,0 +1,35 @@
+{
+  "name": "com.combell.hmac",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "directories": {
+    "test": "src/test"
+  },
+  "scripts": {
+    "start": "yarn run nodemon",
+    "nodemon": "nodemon",
+    "build": "gulp",
+    "test": "./node_modules/nyc/bin/nyc.js ./node_modules/mocha/bin/mocha --require babel-core/register \"./src/test/**/*.js\""
+  },
+  "dependencies": {
+    "request": "^2.86.0"
+  },
+  "devDependencies": {
+    "babel": "^6.23.0",
+    "babel-core": "^6.26.3",
+    "babel-eslint": "^8.2.3",
+    "chai": "^4.1.2",
+    "chai-spies": "^1.0.0",
+    "eslint": "^4.19.1",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-import": "^2.11.0",
+    "gulp": "^4.0.0",
+    "gulp-babel": "^7.0.1",
+    "mocha": "^5.2.0",
+    "nodemon": "^1.17.4",
+    "nyc": "^11.8.0",
+    "rewire": "^4.0.1",
+    "sinon": "^5.0.10"
+  }
+}
