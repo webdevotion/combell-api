@@ -1,10 +1,6 @@
-// require necessary libraries and test for their presence
-let Combell;
-try {
-  Combell = require('./combell.js')
-} catch (err) {
-  console.log(err)
-}
+require('dotenv').config()
+
+let Combell = require('./combell.js')
 
 // get /v2/accounts
 Combell.getAccounts()
