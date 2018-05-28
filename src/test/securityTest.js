@@ -1,10 +1,7 @@
 let chai = require('chai')
 let expect = chai.expect
-
-// lets us mock functions from required modules
-let rewire = require('rewire')
 // require becomes rewire when using 'rewire'
-let subject = rewire('../security')
+let subject = require('../security')
 
 describe('Security', () => {
   describe('return valid hmac', () => {
