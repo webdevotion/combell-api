@@ -1,16 +1,15 @@
-let Request   = require('request');
-let Router    = require('./router')
+let axios   = require('axios');
+let router    = require('./router')
 
-let index = (auth) => {
-  let endpoint = Router.endpoint(Router.endpoints.ACCOUNTS)
+let index = async (auth) => {
+  let endpoint = router.endpoint(router.endpoints.ACCOUNTS)
   let headers = auth.headers(endpoint)
-
-  Request.get(headers, (error, response, body) => {
-    if (error) {
-      return console.dir(error)
-    }
-    console.dir(JSON.parse(body))
-  });
+  try{
+    let result = await axios.get(endpoint.url, headers);
+    return result
+  } catch (err) {
+    return err
+  }
 }
 
 module.exports = {index}
