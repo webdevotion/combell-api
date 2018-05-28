@@ -8,7 +8,7 @@ let index = async (auth) => {
     let result = await axios.get(endpoint.url, headers);
     return result
   } catch (err) {
-    return err
+    return err.response.data
   }
 }
 
