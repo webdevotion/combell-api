@@ -23,4 +23,4 @@ let endpoint = (endpoint) => {
   }
 }
 
-module.exports = {endpoints,endpoint}
+module.exports = {endpoints,endpoint,baseUrl,version}
