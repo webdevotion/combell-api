@@ -2,8 +2,8 @@ let endpoints = {
   ACCOUNTS: '/accounts'
 }
 
-let baseUrl = "https://api.combell.com"
-let version = () => "/v2"
+let baseUrl = process.env.COMBELL_API_URL || "https://api.combell.com"
+let version = () => process.env.COMBELL_API_VERSION || "/v2"
 
 let endpointify = (method, path) => {
   return {
