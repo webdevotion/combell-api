@@ -13,7 +13,8 @@
     "test": "./node_modules/nyc/bin/nyc.js ./node_modules/mocha/bin/mocha --require babel-core/register \"./src/test/**/*.js\""
   },
   "dependencies": {
-    "axios": "^0.18.0"
+    "axios": "^0.18.0",
+    "dotenv": "^5.0.1"
   },
   "devDependencies": {
     "babel": "^6.23.0",
