@@ -1,23 +1,28 @@
-let randomString = (length) => {
-    var text = ""
-    let possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-    for(var i = 0; i < length; i++) {
-        text += possible.charAt(Math.floor(Math.random() * possible.length))
-    }
-    return text
+const randomString = (length) => {
+  let text = '';
+  const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+  for (var i = 0; i < length; i = i+1) {
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  }
+
+  return text;
+};
+
+const concat = (values, delimiter) => {
+  return values.join(delimiter);
 }
 
-let concat = (values, delimiter) => {
-  return values.join(delimiter)
+const now = () => {
+  return new Date();
 }
 
-let now = () => {
-  return new Date()
-}
-
-let epoch = () => {
+const epoch = () => {
   // unix timestamp in seconds
-  return Math.floor(now() / 1000)
+  return Math.floor(now() / 1000);
 }
 
-module.exports = {randomString,concat,now,epoch}
+
+module.exports = {
+  randomString, concat, now, epoch,
+};
