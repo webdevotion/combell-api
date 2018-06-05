@@ -1,17 +1,21 @@
 {
-  "name": "Combell API",
+  "name": "combell-api",
   "version": "0.1.0",
   "main": "index.js",
   "license": "MIT",
   "directories": {
     "test": "src/test"
   },
+  "nyc": {
+    "sourceMap": false,
+    "instrument": false
+  },
   "scripts": {
     "combell": "node ./dist/index.js",
     "start": "yarn run nodemon",
     "nodemon": "nodemon",
     "build": "gulp",
-    "test": "./node_modules/nyc/bin/nyc.js ./node_modules/mocha/bin/mocha --require babel-core/register \"./src/test/**/*.js\""
+    "test": "./node_modules/nyc/bin/nyc.js --reporter=lcov ./node_modules/mocha/bin/mocha --require babel-core/register \"./src/test/**/*.js\""
   },
   "dependencies": {
     "axios": "^0.18.0",
