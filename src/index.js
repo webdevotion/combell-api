@@ -1,12 +1,10 @@
-require('dotenv').config()
+require('dotenv').config();
 
-let Combell = require('./combell.js')
+const Combell = require('./combell.js');
 
 // get /v2/accounts
-let accounts = Combell.getAccounts().then( accounts => {
-  if( accounts.error_code ){
-    console.error( accounts.error_text )
-  }
-})
+const accounts = Combell.getAccounts().then((accounts) => {
+  // accounts is an array of account objects
+});
 
-module.exports = {}
+module.exports = {};
