@@ -15,15 +15,13 @@ const errors = async (e) => {
 
 // returns empty array if catching an error
 // thrown by the accounts module
-const getAccounts = async () => {
-  try {
-    return await accounts.index(authorization);
-  } catch (e) {
-    // send thrown error to handler to properly tackle the issue
-    errors(e);
-    // user gets an empty array of accounts from us
-    return [];
-  }
+const getAccounts = () => {
+    return accounts.index(authorization).catch( (e) => {
+      // send thrown error to handler to properly tackle the issue
+      errors(e);
+      // user gets an empty array of accounts from us
+      return [];
+  })
 };
 
 module.exports = { getAccounts };
