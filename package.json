@@ -1,6 +1,6 @@
 {
-  "name": "com.combell.hmac",
-  "version": "1.0.0",
+  "name": "Combell API",
+  "version": "0.1.0",
   "main": "index.js",
   "license": "MIT",
   "directories": {
