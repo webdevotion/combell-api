@@ -1,97 +1,68 @@
-let chai = require('chai')
-let expect = chai.expect
-// lets us mock private functions from required modules
-let rewire = require('rewire')
+import * as chai from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+import nock from 'nock';
+import rewire from 'rewire';
 
-let subject = require('../../combell/accounts')
+const { expect } = chai;
 
-// http mocking
-let router = require('../../combell/router.js')
-let nock = require('nock')
+chai.use(chaiAsPromised);
 
-// require becomes rewire when using 'rewire'
-let auth = rewire('../../combell/authorization')
-
+const utils = rewire('../../utils');
+const router = rewire('../../combell/router');
+const subject = rewire('../../combell/accounts');
+const auth = rewire('../../combell/authorization');
 
 describe('Accounts', () => {
+  describe('test non 200 http status codes', () => {
+    const endpoint = router.endpoint(router.endpoints.ACCOUNTS);
+
+    it('should handle a 404 with an error', async () => {
+      // nock will release the matched http request after each call
+      const headers = auth.headers(endpoint);
+      let api = nock(router.baseUrl, { requestHeaders: null })
+        .get(endpoint.path)
+        .reply(404);
+
+      expect(subject.index(auth)).to.be.rejectedWith(Error);
+    });
+  });
+
   describe('get accounts index', () => {
+    let api;
+    const endpoint = router.endpoint(router.endpoints.ACCOUNTS);
+    const nockData = [{ id: 0, identifier: 'string' }];
 
-    let api
-    let endpoint = router.endpoint(router.endpoints.ACCOUNTS)
-    let nockData = [{"id": 0,"identifier": "string"}]
-
-    it("should return all accounts for this user", async () => {
-
+    it('should return all accounts for this user', async () => {
       // nock will release the matched http request after each call
-      api = nock(router.baseUrl, {requestHeaders: auth.headers(endpoint)} )
+      api = nock(router.baseUrl, { requestHeaders: auth.headers(endpoint) });
 
-      var scope = api
+      api
         .get(endpoint.path)
         .reply(200, nockData);
 
-      let response = await subject.index(auth)
-      expect(response.status).to.eq(200)
+      const response = await subject.index(auth);
+      chai.expect(response.status).to.eq(200);
 
-      let data = response.data
-      expect(data).to.be.a("array")
-      expect(data.length).to.eq(1)
-      expect(data[0].id).to.eq(0)
-
-      // inspect the generated hmac sig
-      let authorizationHeader = response.request.headers.authorization
-      let authorizationHeaderParts = authorizationHeader.split(":")
-      expect(authorizationHeaderParts.length).to.eq(4)
-    })
-
-    it("should return 404 when url is malformed", async () => {
-
-      // nock will release the matched http request after each call
-      let dummyURL = "https://combell.com"
-      auth.__set__('baseUrl',dummyURL)
-      api = nock(dummyURL, {requestHeaders: auth.headers(endpoint)} )
-
-      var scope = api
-        .get(endpoint.path)
-        .reply(404, nockData);
-
-      let response = await subject.index(auth)
-      let data = response.data
-
-      expect(response.status).to.eq(404)
-    })
-
-    it("should use valid HMAC auth header", async () => {
-
-      // nock will release the matched http request after each call
-      api = nock(router.baseUrl, {requestHeaders: auth.headers(endpoint)} )
-
-      var scope = api
-        .get(endpoint.path)
-        .reply(200, nockData);
-
-      let response = await subject.index(auth)
+      const { data } = response;
+      expect(data).to.be.a('array');
+      expect(data.length).to.eq(1);
+      expect(data[0].id).to.eq(0);
 
       // inspect the generated hmac sig
-      let authorizationHeader = response.request.headers.authorization
-      let authorizationHeaderParts = authorizationHeader.split(":")
-      expect(authorizationHeaderParts.length).to.eq(4)
-    })
+      const authorizationHeader = response.request.headers.authorization;
+      const authorizationHeaderParts = authorizationHeader.split(':');
+      expect(authorizationHeaderParts.length).to.eq(4);
+    });
 
-    it("should return 401 if not authorized", async () => {
+    it('should handle 401 if not authorized', async () => {
       // nock will release the matched http request after each call
-      api = nock(router.baseUrl, {requestHeaders: null} )
+      api = nock(router.baseUrl, { requestHeaders: null });
 
-      var scope = api
+      api
         .get(endpoint.path)
         .reply(401);
 
-      let response = await subject.index(auth)
-      let data = response.data
-      let headers = response.headers
-
-      // inspect the generated hmac sig
-      expect( response.response.status ).to.eq(401)
-
+      expect(subject.index(auth)).to.be.rejectedWith(Error, 'authentication');
     });
   });
-})
+});
