@@ -11,27 +11,19 @@ const headers = (endpoint) => {
 };
 
 // PRIVATE
-let options = (url, authHeaderValue) => {
-  return {
-    headers: {
-      Authorization: `hmac ${authHeaderValue}`,
-      'Content-Type': 'application/json',
-    },
-    url
-  }
-};
+let options = (url, authHeaderValue) => ({
+  headers: {
+    Authorization: `hmac ${authHeaderValue}`,
+    'Content-Type': 'application/json',
+  },
+  url,
+});
 
-const getEpoch = () => {
-  return Utils.epoch();
-}
+const getEpoch = () => Utils.epoch();
 
-const getNonce = () => {
-  return Utils.randomString(32);
-}
+const getNonce = () => Utils.randomString(32);
 
-const getHmacInputText = options => {
-  return Utils.concat(options, '');
-}
+const getHmacInputText = options => Utils.concat(options, '');
 
 const inputForHmac = (apiKey, endpoint, bodyHash) => {
   const httpMethod = endpoint.method;

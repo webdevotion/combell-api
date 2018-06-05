@@ -19,7 +19,7 @@ describe('Accounts', () => {
     it('should handle a 404 with an error', async () => {
       // nock will release the matched http request after each call
       const headers = auth.headers(endpoint);
-      let api = nock(router.baseUrl, { requestHeaders: null })
+      const api = nock(router.baseUrl, { requestHeaders: null })
         .get(endpoint.path)
         .reply(404);
 
