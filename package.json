@@ -7,6 +7,7 @@
     "test": "src/test"
   },
   "scripts": {
+    "combell": "node ./dist/index.js",
     "start": "yarn run nodemon",
     "nodemon": "nodemon",
     "build": "gulp",
