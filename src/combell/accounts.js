@@ -1,15 +1,10 @@
-let axios   = require('axios');
-let router    = require('./router')
+const router = require('./router');
+const request = require('./request');
 
-let index = async (auth) => {
-  let endpoint = router.endpoint(router.endpoints.ACCOUNTS)
-  let headers = auth.headers(endpoint)
-  try{
-    let result = await axios.get(endpoint.url, headers);
-    return result
-  } catch (err) {
-    return err.response.data
-  }
-}
+const index = async (auth) => {
+  const endpoint = router.endpoint(router.endpoints.ACCOUNTS);
+  const headers = auth.headers(endpoint);
+  return await request.get(endpoint.url, headers);
+};
 
-module.exports = {index}
+module.exports = { index };
