@@ -1,26 +1,26 @@
-let endpoints = {
-  ACCOUNTS: '/accounts'
-}
+const endpoints = {
+  ACCOUNTS: '/accounts',
+};
 
-let baseUrl = process.env.COMBELL_API_URL || "https://api.combell.com"
-let version = () => process.env.COMBELL_API_VERSION || "/v2"
+const baseUrl = process.env.COMBELL_API_URL || 'https://api.combell.com';
+const version = () => process.env.COMBELL_API_VERSION || '/v2';
 
-let endpointify = (method, path) => {
-  return {
-     'method': method
-    ,'path': version() + path
-    ,'url': baseUrl + version() + path
-  }
-}
+const endpointify = (method, path) => ({
+  method,
+  path: version() + path,
+  url: baseUrl + version() + path,
+});
 
-let endpoint = (endpoint) => {
-  let GET = 'get'
-  switch(endpoint){
+const endpoint = (endpoint) => {
+  const GET = 'get';
+  switch (endpoint) {
     case endpoints.ACCOUNTS:
-      return endpointify(GET,"/accounts")
+      return endpointify(GET, '/accounts');
     default:
-      return endpointify(GET,'')
+      return endpointify(GET, '');
   }
-}
+};
 
-module.exports = {endpoints,endpoint,baseUrl,version}
+module.exports = {
+  endpoints, endpoint, baseUrl, version,
+};
