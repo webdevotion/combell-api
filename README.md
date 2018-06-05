@@ -13,6 +13,7 @@ I hope my effort proofs to be useful for other node.js projects or as a learning
 - `cd` into the project folder ( probably named `combell-api` )
 - `yarn` to install all dependencies ( [how to install](https://yarnpkg.com/lang/en/docs/install/) )
 - build the project by running `gulp scripts` ( which avoids `eslint` )
+- copy `.env.example` to `.env` and edit it's contents ( [get your api key here](https://my.combell.com) )
 - run the main entry point with `yarn run combell` 
 
 ## Notice
