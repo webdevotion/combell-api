@@ -1,48 +1,59 @@
-let Utils     = require('../utils')
-let Security  = require('../security')
+const Utils = require('../utils');
+const Security = require('../security');
+
+const apiKey = () => process.env.COMBELL_API_KEY || '00000-00000-00000';
 
 // PUBLIC
 
-let headers = ( endpoint ) => {
-  return options( endpoint.url, authorizationHeaderValue(apiKey, endpoint) )
-}
-
-let apiKey
+const headers = (endpoint) => {
+  const val = authorizationHeaderValue(apiKey, endpoint);
+  return options(endpoint.url, val);
+};
 
 // PRIVATE
-let options = ( url, authHeaderValue) => {
+let options = (url, authHeaderValue) => {
   return {
-    "headers": {
-      "Authorization": 'hmac ' + authHeaderValue,
-      'Content-Type': 'application/json'
+    headers: {
+      Authorization: `hmac ${authHeaderValue}`,
+      'Content-Type': 'application/json',
     },
-    "url": url
+    url
   }
+};
+
+const getEpoch = () => {
+  return Utils.epoch();
 }
 
+const getNonce = () => {
+  return Utils.randomString(32);
+}
+
+const getHmacInputText = options => {
+  return Utils.concat(options, '');
+}
+
+const inputForHmac = (apiKey, endpoint, bodyHash) => {
+  const httpMethod = endpoint.method;
+  const action = endpoint.path;
+  const epoch = getEpoch();
+  const nonce = getNonce();
+  const concatenated = getHmacInputText([apiKey, httpMethod, action, epoch, nonce, bodyHash]);
+  return {
+    text: concatenated,
+    epoch,
+    nonce,
+  };
+};
+
 let authorizationHeaderValue = (apiKey, endpoint) => {
-  let httpMethod = endpoint.method;
-  let action = endpoint.path
-  let epoch = Utils.epoch()
-  let nonce = Utils.randomString(32)
-  let bodyHash = '' // empty, no body request at the moment
-
-  // concat strings to satisfy combell requirements ( no delimiter is used )
-
-  // - apikey
-  // - (lowercased) request method ( get, post, put, ... )
-  // - path (including API version and slashes) and querystring information
-  // - unix timestamp in seconds
-  // - nonce ( = random throwaway string )
-  // - content IF body is not empty, MD5 hash of the request body
-
-  let text = Utils.concat([apiKey, httpMethod, action, epoch, nonce, bodyHash], '');
-  let hmac = Security.hmacify(text,nonce)
+  const bodyHash = ''; // empty, no body request at the moment
+  const hmacParams = inputForHmac(apiKey, endpoint, bodyHash);
+  const generatedHmac = Security.hmacify(hmacParams.text, hmacParams.nonce);
 
   // https://api.combell.com/v2/documentation#section/Authentication/Sending-an-authorized-request
   // > your_api_key:generated_hmac:nonce:unix_timestamp
-  let authHeaderValue = Utils.concat([apiKey, hmac, nonce, epoch], ':')
-  return authHeaderValue
-}
+  return Utils.concat([apiKey(), generatedHmac, hmacParams.nonce, hmacParams.epoch], ':');
+};
 
-module.exports = {headers}
+module.exports = { headers, inputForHmac };
