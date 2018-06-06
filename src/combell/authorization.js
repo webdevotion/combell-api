@@ -1,17 +1,11 @@
 const Utils = require('../utils');
 const Security = require('../security');
 
-const apiKey = () => process.env.COMBELL_API_KEY || '00000-00000-00000';
+const getApiKey = () => process.env.COMBELL_API_KEY || '00000-00000-00000';
 
-// PUBLIC
-
-const headers = (endpoint) => {
-  const val = authorizationHeaderValue(apiKey, endpoint);
-  return options(endpoint.url, val);
-};
 
 // PRIVATE
-let options = (url, authHeaderValue) => ({
+const options = (url, authHeaderValue) => ({
   headers: {
     Authorization: `hmac ${authHeaderValue}`,
     'Content-Type': 'application/json',
@@ -23,14 +17,14 @@ const getEpoch = () => Utils.epoch();
 
 const getNonce = () => Utils.randomString(32);
 
-const getHmacInputText = options => Utils.concat(options, '');
+const getHmacInputText = input => Utils.concat(input, '');
 
-const inputForHmac = (apiKey, endpoint, bodyHash) => {
+const inputForHmac = (apiKeyValue, endpoint, bodyHash) => {
   const httpMethod = endpoint.method;
   const action = endpoint.path;
   const epoch = getEpoch();
   const nonce = getNonce();
-  const concatenated = getHmacInputText([apiKey, httpMethod, action, epoch, nonce, bodyHash]);
+  const concatenated = getHmacInputText([apiKeyValue, httpMethod, action, epoch, nonce, bodyHash]);
   return {
     text: concatenated,
     epoch,
@@ -38,14 +32,19 @@ const inputForHmac = (apiKey, endpoint, bodyHash) => {
   };
 };
 
-let authorizationHeaderValue = (apiKey, endpoint) => {
+const authorizationHeaderValue = (apiKeyValue, endpoint) => {
   const bodyHash = ''; // empty, no body request at the moment
-  const hmacParams = inputForHmac(apiKey, endpoint, bodyHash);
+  const hmacParams = inputForHmac(apiKeyValue, endpoint, bodyHash);
   const generatedHmac = Security.hmacify(hmacParams.text, hmacParams.nonce);
 
   // https://api.combell.com/v2/documentation#section/Authentication/Sending-an-authorized-request
   // > your_api_key:generated_hmac:nonce:unix_timestamp
-  return Utils.concat([apiKey(), generatedHmac, hmacParams.nonce, hmacParams.epoch], ':');
+  return Utils.concat([apiKeyValue, generatedHmac, hmacParams.nonce, hmacParams.epoch], ':');
+};
+
+const headers = (endpoint) => {
+  const val = authorizationHeaderValue(getApiKey(), endpoint);
+  return options(endpoint.url, val);
 };
 
 module.exports = { headers, inputForHmac };

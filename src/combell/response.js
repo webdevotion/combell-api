@@ -16,28 +16,8 @@ const contexts = {
   },
 };
 
-// error is just axios' response object
-const errorhandler = (error) => {
-  if (error.response) {
-    // The request was made and the server responded with a status code
-    // that falls out of the range of 2xx
-    // console.log(error.request.headers)
-    // console.log(error.response.status)
-    // console.log(error.response.headers)
-    const context = errorcontext(error);
-    return new Error(context);
-  } else if (error.request) {
-    // The request was made but no response w2as received
-    // `error.request` is an instance of XMLHttpRequest in the browser
-    // and an instance of http.ClientRequest in node.js
-    return new Error(contexts.no_response.context);
-  }
-
-  return new Error(contexts.general.context);
-};
-
-let errorcontext = function (error) {
-  const status = error.response.status;
+const errorcontext = (error) => {
+  const { status } = error.response;
 
   switch (status) {
     case 401:
@@ -64,6 +44,26 @@ let errorcontext = function (error) {
   // which provides some application centric context
   // for example: 'authentication failed'
   return e.context;
+};
+
+// error is just axios' response object
+const errorhandler = (error) => {
+  if (error.response) {
+    // The request was made and the server responded with a status code
+    // that falls out of the range of 2xx
+    // console.log(error.request.headers)
+    // console.log(error.response.status)
+    // console.log(error.response.headers)
+    const context = errorcontext(error);
+    return new Error(context);
+  } else if (error.request) {
+    // The request was made but no response w2as received
+    // `error.request` is an instance of XMLHttpRequest in the browser
+    // and an instance of http.ClientRequest in node.js
+    return new Error(contexts.no_response.context);
+  }
+
+  return new Error(contexts.general.context);
 };
 
 module.exports = { errorhandler };

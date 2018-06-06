@@ -1,5 +1,4 @@
 import * as chai from 'chai';
-import nock from 'nock';
 import rewire from 'rewire';
 
 const { expect } = chai;
