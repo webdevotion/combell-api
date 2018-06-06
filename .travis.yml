@@ -20,10 +20,10 @@ env:
   global:
     secure: O49TTUB/sZG46rSHLZwTKjl63XpnR32TKwZxky8kVReDtSb4blpep2ZxbNpr1Yacb/SjCTNHEq9MBh2DTgFeRvxlK6NLcpSr7+2vYo1UHkv/WO3wsaEbUjqvnIQow7qBvUwWCqCp1eNQTm9o7thxd/Pet5UuzL8qRWBLLXO/feeSa/aIDRWJzAjW8kuN43JV6eYOb8e+F44ICAfObehzrXTowOBQ7f3uC7/yjKUTdtwtBsaPLNj/EkylSyY4L6ReTO0vfZ1cDBj1++8Hx8lOeECZM7x0acUIaaIOBIr1pHmVZekGaXypzzBprbeIiIj4uSrFwUz9L+9t0K80uKNTyqk8APSRImix992lp0wD/53E8XsPdvuSYTdIEZcFKQKxdVu+LUAkF275qXIeritJyUBxYoUWKYFdjKpi+kWIt1udymmpKA7jac8wgc6+4FMw2eamoV/bJfVVx2XbIPyghIT31onV/HRpX9TZ1JZ697Z2T4S4hTwl8J/xfz0HqBpn29zlSvo15V5TY7kDxdOOTid5WQBLLlOTiUdVPM/D/Vj4Z+R2QbqvTx9o40Q38J5WnSJAWzmkoZ/KvSDruD33JRg8yNGWSrHNs3z6AareKhFkG1dTQdZBbWF995Cx+FnlqKIadYgqYe9BQbavmRMfrT/WMyDWXvFoOkoF0jvPnmw=
 before_deploy:
-  - export FILE_TO_UPLOAD='combell-api-dist-"${TRAVIS_TAG}".tar.gz' FOLDER_TO_ARCHIVE='"${TRAVIS_BUILD_DIR}"/combell-api-"${TRAVIS_TAG}"'
+  - export FILE_TO_UPLOAD=combell-api-dist-${TRAVIS_TAG}.tar.gz FOLDER_TO_ARCHIVE=combell-api-${TRAVIS_TAG}
   - yarn run release
-  - mv '"${TRAVIS_BUILD_DIR}"/dist' '"${FOLDER_TO_ARCHIVE}"'
-  - tar -czvf '"${FILE_TO_UPLOAD}"' '"${FOLDER_TO_ARCHIVE}"'
+  - mv "dist" "${FOLDER_TO_ARCHIVE}"
+  - tar -czvf "${FILE_TO_UPLOAD}" "${FOLDER_TO_ARCHIVE}"
 deploy:
   provider: releases
   api_key:
