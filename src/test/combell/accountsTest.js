@@ -7,7 +7,6 @@ const { expect } = chai;
 
 chai.use(chaiAsPromised);
 
-const utils = rewire('../../utils');
 const router = rewire('../../combell/router');
 const subject = rewire('../../combell/accounts');
 const auth = rewire('../../combell/authorization');
@@ -18,8 +17,7 @@ describe('Accounts', () => {
 
     it('should handle a 404 with an error', async () => {
       // nock will release the matched http request after each call
-      const headers = auth.headers(endpoint);
-      const api = nock(router.baseUrl, { requestHeaders: null })
+      nock(router.baseUrl, { requestHeaders: null })
         .get(endpoint.path)
         .reply(404);
 
