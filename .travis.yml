@@ -28,9 +28,10 @@ deploy:
   provider: releases
   api_key:
     secure: s/0osxTUIle9tND7ttrf2EvRfcW6FWaSAbtqoHYPOPvRE5eNDF4wVpAGEvWZ9L0qzQZIQSCy+L9VOMFN3lEc6Vzyy/7FCJ1v+IOhmrV6E72Xn6PI7wZIEABS1KB6OPjn9Z2oIcu5Vi2BnFnnZ8sXVoNA1/BebphRYy1quTzsUvpfFb8HTyjgVg/pkfLgWo9XfroLhqwgoodbPEjYryO4jC3FgYb/2mCO1wsdvMD0VXQWhuEt712NFm8P0GuUeIhdV3ZRNRZ2+QPWNBO4uFWXmhNZlp/DWM9DK04PCefaFJUa6TLLIYzCSNs30BUYHXXChKtF127XCvP+Wc3U9b+2quMDxQmN/reDFciUE1s4GtHTOG1bvzhMHBVtZKMtMXf2KfSzfw0L7k6f+gFrNda63jXxM17hGLWO6Wbfyak8mheZw3CAwZH38fSibSLqKJoNLtavifq4J7C5a06znzFfbix6VwQBFtiX7sSVACUNfFIWwyb2aTU8Yjdvtc4P6Pe4QdHJx2Xaiv9P4+CSg5rfXp/9eQ03UTI89lCuDuBWn0usZ8YTXnP6NgLXagTR5E/PbpFqu2BjQ1iizV0gWxMFBxEyeKuNFUIUaU8ugQyJFxRC2ATT4RDAYgCT6VMvoGo0myFTDz7cY1yOZeOEorj2biBsoilfKu5u93odqIJI/Wc=
-  file: '"${FILE_TO_UPLOAD}"'
-  name: '"${TRAVIS_TAG}"'
-  body: '"${TRAVIS_COMMIT_MESSAGE}"'
+  file: "${FILE_TO_UPLOAD}"
+  name: "${TRAVIS_TAG}"
+  body: "${TRAVIS_COMMIT_MESSAGE}"
+  prerelease: false
   on:
     repo: webdevotion/combell-api
     branch: develop
