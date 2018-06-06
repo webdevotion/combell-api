@@ -15,7 +15,7 @@ describe('Authorization', () => {
     it('should should provide correct input for hmac generator', () => {
       subject.__set__('getEpoch', () => 0);
       subject.__set__('getNonce', () => 'abcde');
-      subject.__set__('apiKey', () => apiKey);
+      subject.__set__('getApiKey', () => apiKey);
 
       const endpoint = router.endpoint(router.endpoints.ACCOUNTS);
       const bodyHash = '';
@@ -34,7 +34,7 @@ describe('Authorization', () => {
     it('should use valid HMAC auth header', async () => {
       subject.__set__('getEpoch', () => 0);
       subject.__set__('getNonce', () => 'abcde');
-      subject.__set__('apiKey', () => apiKey);
+      subject.__set__('getApiKey', () => apiKey);
 
       const endpoint = router.endpoint();
       const headers = subject.headers(endpoint);
