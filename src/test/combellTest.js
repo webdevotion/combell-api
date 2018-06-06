@@ -8,9 +8,7 @@ const { expect } = chai;
 chai.use(chaiAsPromised);
 
 const subject = require('../combell');
-
 const accounts = require('../combell/accounts');
-const authorization = require('../combell/authorization');
 
 describe('Combell', () => {
   describe('fetch accounts', () => {
