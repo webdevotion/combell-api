@@ -1,25 +1,38 @@
 language: node_js
-
 node_js:
-  - "lts/*"
-
+- lts/*
 dist: trusty
-
 before_script:
-  - yarn global add nyc
-  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-  - chmod +x ./cc-test-reporter
-  - ./cc-test-reporter before-build
-
+- yarn global add nyc
+- curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+- chmod +x ./cc-test-reporter
+- "./cc-test-reporter before-build"
 cache:
   directories:
-    - "node_modules"
-
+  - node_modules
 script:
-  - yarn run test
-
+- yarn run test
 after_script:
-  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
-
+- "./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT"
 notifications:
   email: false
+env:
+  global:
+    secure: O49TTUB/sZG46rSHLZwTKjl63XpnR32TKwZxky8kVReDtSb4blpep2ZxbNpr1Yacb/SjCTNHEq9MBh2DTgFeRvxlK6NLcpSr7+2vYo1UHkv/WO3wsaEbUjqvnIQow7qBvUwWCqCp1eNQTm9o7thxd/Pet5UuzL8qRWBLLXO/feeSa/aIDRWJzAjW8kuN43JV6eYOb8e+F44ICAfObehzrXTowOBQ7f3uC7/yjKUTdtwtBsaPLNj/EkylSyY4L6ReTO0vfZ1cDBj1++8Hx8lOeECZM7x0acUIaaIOBIr1pHmVZekGaXypzzBprbeIiIj4uSrFwUz9L+9t0K80uKNTyqk8APSRImix992lp0wD/53E8XsPdvuSYTdIEZcFKQKxdVu+LUAkF275qXIeritJyUBxYoUWKYFdjKpi+kWIt1udymmpKA7jac8wgc6+4FMw2eamoV/bJfVVx2XbIPyghIT31onV/HRpX9TZ1JZ697Z2T4S4hTwl8J/xfz0HqBpn29zlSvo15V5TY7kDxdOOTid5WQBLLlOTiUdVPM/D/Vj4Z+R2QbqvTx9o40Q38J5WnSJAWzmkoZ/KvSDruD33JRg8yNGWSrHNs3z6AareKhFkG1dTQdZBbWF995Cx+FnlqKIadYgqYe9BQbavmRMfrT/WMyDWXvFoOkoF0jvPnmw=
+before_deploy:
+- export FILE_TO_UPLOAD='combell-api-dist-"${TRAVIS_TAG}".tar.gz' FOLDER_TO_ARCHIVE='"${TRAVIS_BUILD_DIR}"/combell-api-"${TRAVIS_TAG}"'
+- "yarn run release"
+- "mv '"${TRAVIS_BUILD_DIR}"/dist' '"${FOLDER_TO_ARCHIVE}"'"
+- "tar -czvf '"${FILE_TO_UPLOAD}"' '"${FOLDER_TO_ARCHIVE}"'"
+deploy:
+  provider: releases
+  api_key:
+    secure: s/0osxTUIle9tND7ttrf2EvRfcW6FWaSAbtqoHYPOPvRE5eNDF4wVpAGEvWZ9L0qzQZIQSCy+L9VOMFN3lEc6Vzyy/7FCJ1v+IOhmrV6E72Xn6PI7wZIEABS1KB6OPjn9Z2oIcu5Vi2BnFnnZ8sXVoNA1/BebphRYy1quTzsUvpfFb8HTyjgVg/pkfLgWo9XfroLhqwgoodbPEjYryO4jC3FgYb/2mCO1wsdvMD0VXQWhuEt712NFm8P0GuUeIhdV3ZRNRZ2+QPWNBO4uFWXmhNZlp/DWM9DK04PCefaFJUa6TLLIYzCSNs30BUYHXXChKtF127XCvP+Wc3U9b+2quMDxQmN/reDFciUE1s4GtHTOG1bvzhMHBVtZKMtMXf2KfSzfw0L7k6f+gFrNda63jXxM17hGLWO6Wbfyak8mheZw3CAwZH38fSibSLqKJoNLtavifq4J7C5a06znzFfbix6VwQBFtiX7sSVACUNfFIWwyb2aTU8Yjdvtc4P6Pe4QdHJx2Xaiv9P4+CSg5rfXp/9eQ03UTI89lCuDuBWn0usZ8YTXnP6NgLXagTR5E/PbpFqu2BjQ1iizV0gWxMFBxEyeKuNFUIUaU8ugQyJFxRC2ATT4RDAYgCT6VMvoGo0myFTDz7cY1yOZeOEorj2biBsoilfKu5u93odqIJI/Wc=
+  file: '"${FILE_TO_UPLOAD}"'
+  name: '"${TRAVIS_TAG}"'
+  body: '"${TRAVIS_COMMIT_MESSAGE}"'
+  on:
+    repo: webdevotion/combell-api
+    on:
+      branch: feature/travis-github-release
+      tags: true
