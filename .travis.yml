@@ -33,6 +33,5 @@ deploy:
   body: '"${TRAVIS_COMMIT_MESSAGE}"'
   on:
     repo: webdevotion/combell-api
-    on:
-      branch: develop
-      tags: false
+    branch: develop
+    tags: false
