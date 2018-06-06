@@ -11,9 +11,9 @@ const endpointify = (method, path) => ({
   url: baseUrl + version() + path,
 });
 
-const endpoint = (endpoint) => {
+const endpoint = (point) => {
   const GET = 'get';
-  switch (endpoint) {
+  switch (point) {
     case endpoints.ACCOUNTS:
       return endpointify(GET, '/accounts');
     default:
