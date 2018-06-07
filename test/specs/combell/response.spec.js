@@ -3,7 +3,7 @@ import rewire from 'rewire';
 
 const { expect } = chai;
 
-const subject = rewire('../../combell/response');
+const subject = rewire('../../../lib/combell/response');
 
 describe('Response', () => {
   describe('test error context handling', () => {

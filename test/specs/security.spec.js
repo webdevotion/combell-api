@@ -3,7 +3,7 @@ import * as chai from 'chai';
 const { expect } = chai;
 
 // require becomes rewire when using 'rewire'
-const subject = require('../security');
+const subject = require('../../lib/security');
 
 describe('Security', () => {
   describe('return valid hmac', () => {

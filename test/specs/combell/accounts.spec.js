@@ -7,9 +7,9 @@ const { expect } = chai;
 
 chai.use(chaiAsPromised);
 
-const router = rewire('../../combell/router');
-const subject = rewire('../../combell/accounts');
-const auth = rewire('../../combell/authorization');
+const router = rewire('../../../lib/combell/router');
+const subject = rewire('../../../lib/combell/accounts');
+const auth = rewire('../../../lib/combell/authorization');
 
 describe('Accounts', () => {
   describe('test non 200 http status codes', () => {

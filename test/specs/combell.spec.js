@@ -7,8 +7,8 @@ const sinon = require('sinon');
 const { expect } = chai;
 chai.use(chaiAsPromised);
 
-const subject = require('../combell');
-const accounts = require('../combell/accounts');
+const subject = require('../../lib/combell');
+const accounts = require('../../lib/combell/accounts');
 
 describe('Combell', () => {
   describe('fetch accounts', () => {

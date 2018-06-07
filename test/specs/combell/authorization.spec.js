@@ -4,9 +4,9 @@ import rewire from 'rewire';
 
 const { expect } = chai;
 
-const router = require('../../combell/router');
+const router = require('../../../lib/combell/router');
 
-const subject = rewire('../../combell/authorization');
+const subject = rewire('../../../lib/combell/authorization');
 
 describe('Authorization', () => {
   describe('HMAC', () => {
