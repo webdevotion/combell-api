@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 
-const subject = require('../../../lib/combell/router.js');
+const subject = require('../../../lib/core/router.js');
 
 
 describe('Router', () => {

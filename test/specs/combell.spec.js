@@ -8,7 +8,7 @@ const { expect } = chai;
 chai.use(chaiAsPromised);
 
 const subject = require('../../lib/combell');
-const accounts = require('../../lib/combell/accounts');
+const accounts = require('../../lib/core/accounts');
 
 describe('Combell', () => {
   describe('fetch accounts', () => {
