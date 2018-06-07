@@ -24,8 +24,8 @@ before_deploy:
   - export FOLDER_TO_ARCHIVE=combell-api-${TRAVIS_TAG}
   - yarn run release
   - mv "dist" "${FOLDER_TO_ARCHIVE}"
-  - tar -czvf ${FILE_TO_UPLOAD} ${FOLDER_TO_ARCHIVE}
-  - export FILE_TO_UPLOAD=combell-api-dist-$(ls *.tar.gz)
+  - tar -czvf combell-api-dist-${TRAVIS_TAG} ${FOLDER_TO_ARCHIVE}
+  - export FILE_TO_UPLOAD=$(ls *.tar.gz)
   - ls -al .
 deploy:
   provider: releases
