@@ -1,6 +1,6 @@
 require('dotenv').config();
 
-const Combell = require('./combell.js');
+const Combell = require('../index.js');
 
 // get /v2/accounts
 // result is always an array of account objects
