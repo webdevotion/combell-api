@@ -1,4 +1,7 @@
-require('dotenv').config();
+// production apps should never use dotenv to load secrets
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
 
 const Combell = require('../index.js');
 
