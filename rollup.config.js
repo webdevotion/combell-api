@@ -1,12 +1,25 @@
-import resolve from 'rollup-plugin-node-resolve'
-import commonjs from 'rollup-plugin-commonjs'
-import babel from 'rollup-plugin-babel'
 import pkg from './package.json'
-import json from 'rollup-plugin-json'
-import builtins from 'rollup-plugin-node-builtins'
-import { terser } from "rollup-plugin-terser"
-import license from "rollup-plugin-license"
 import path from 'path'
+
+
+
+import babel      from 'rollup-plugin-babel'
+import builtins   from 'rollup-plugin-node-builtins'
+import commonjs   from 'rollup-plugin-commonjs'
+import json       from 'rollup-plugin-json'
+import license    from "rollup-plugin-license"
+import resolve    from 'rollup-plugin-node-resolve'
+import { terser } from "rollup-plugin-terser"
+
+let input = './lib/combell.js'
+let external = ['axios','dotenv']
+let babelExclude = ['node_modules/**','**/*.json']
+
+const minified = true
+const unminified = false
+
+const jsFileExtension = '.js'
+const minifiedJSFileExtension = '.min' + jsFileExtension
 
 let licensify = function() {
   return license({banner: {
@@ -15,6 +28,8 @@ let licensify = function() {
   }})
 }
 
+// minifies source code files
+// stripcomments strips comments but leaves @license tags in place
 let terserPlugin = (stripComments) => {
   let comments = stripComments ? null : (node, comment) => {
     let {value,type} = comment
@@ -26,103 +41,65 @@ let terserPlugin = (stripComments) => {
   return terser({ie8: false, sourceMap: true, output: {comments: comments}})
 }
 
-export default [
-  // browser-friendly UMD build
-  {
-    input: './lib/combell.js',
-    external: ['axios','dotenv'],
-    output: {
-      name: 'combell',
-      file: pkg.browser,
-      format: 'umd',
-      exports: 'named',
-      moduleName: pkg.name,
-
-      globals: {
-        axios: 'axios'
-      }
-    },
-    plugins: [
+let plugins = (shouldMinify) => {
+  let stripComments = true
+  return [
       builtins(),
       resolve(), // so Rollup can find dependencies
       json(), // so Rollup can handle axios' package.json
-      babel({
-        exclude: ['node_modules/**','**/*.json']
-      }),
-      terserPlugin(true),
+      babel({ exclude: babelExclude }),
+      shouldMinify ? terserPlugin(stripComments) : null,
       licensify()
-    ]
-  },
+  ].filter( p => p )
+}
 
-  // browser-friendly minified UMD build
-  {
-    input: './lib/combell.js',
-    external: ['axios','dotenv'],
-    output: {
-      name: 'combell',
-      file: pkg.browser.replace('.js','.min.js'),
-      format: 'umd',
-      exports: 'named',
-      moduleName: pkg.name,
-      globals: {
-        axios: 'axios'
-      }
-    },
-    plugins: [
-      builtins(),
-      resolve(), // so Rollup can find dependencies
-      json(), // so Rollup can handle axios' package.json
-      babel({
-        exclude: ['node_modules/**','**/*.json']
-      }),
-      terserPlugin(false),
-      licensify()
-    ]
-  },
+let outputExtension = (minify) => {
+  return minify ? minifiedJSFileExtension : jsFileExtension
+}
 
-  // CommonJS (for Node) and ES module (for bundlers) build.
-  // (We could have three entries in the configuration array
-  // instead of two, but it's quicker to generate multiple
-  // builds from a single configuration where possible, using
-  // the `targets` option which can specify `dest` and `format`)
-  {
-    input: './lib/combell.js',
-    external: ['axios','dotenv'],
-    output: [
-      { file: pkg.main, format: 'cjs', exports: 'named' },
-      { file: pkg.module, format: 'es' }
-    ],
-    plugins: [
-      builtins({crypto: true}),
-      resolve(),
-      babel({
-        exclude: ['node_modules/**','**/*.json']
-      }),
-      terserPlugin(true),
-      licensify()
-    ]
-  },
+let commonJSOutput = (minify) => {
+  return [
+    { file: pkg.main.replace(outputExtension(false), outputExtension(minify)),
+      format: 'cjs', exports: 'named' },
+    { file: pkg.module.replace(outputExtension(false), outputExtension(minify)),
+      format: 'es' }
+  ]
+}
 
-  // CommonJS (for Node) and ES module (for bundlers) build.
-  // (We could have three entries in the configuration array
-  // instead of two, but it's quicker to generate multiple
-  // builds from a single configuration where possible, using
-  // the `targets` option which can specify `dest` and `format`)
-  {
-    input: './lib/combell.js',
-    external: ['axios','dotenv'],
-    output: [
-      { file: pkg.main.replace('.js','.min.js'), format: 'cjs', exports: 'named' },
-      { file: pkg.module.replace('.js','.min.js'), format: 'es' }
-    ],
-    plugins: [
-      builtins({crypto: true}),
-      resolve(),
-      babel({
-        exclude: ['node_modules/**','**/*.json']
-      }),
-      terserPlugin(false),
-      licensify()
-    ]
+let umdOutput = (minify) => {
+  return {
+    name: 'combell',
+    file: pkg.browser.replace(outputExtension(false), outputExtension(minify)),
+    format: 'umd',
+    exports: 'named',
+    moduleName: pkg.name,
+    globals: {
+      axios: 'axios'
+    }
   }
+}
+
+let browserBuild = (shouldMinify) => {
+  return {
+    input: input,
+    external: external,
+    output: umdOutput(shouldMinify),
+    plugins: plugins(shouldMinify)
+  }
+}
+
+let nodejsBuild = (shouldMinify) => {
+  return {
+    input: input,
+    external: external,
+    output: commonJSOutput(shouldMinify),
+    plugins: plugins(shouldMinify)
+  }
+}
+
+export default [
+  browserBuild( unminified ),
+  browserBuild( minified ),
+  nodejsBuild( unminified ),
+  nodejsBuild( minified )
 ]
