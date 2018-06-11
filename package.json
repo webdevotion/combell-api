@@ -8,6 +8,9 @@
   "directories": {
     "test": "./test"
   },
+  "engines": {
+    "node": ">=8.0.0"
+  },
   "scripts": {
     "combell": "node ./dist/index.js",
     "start": "yarn run nodemon",
