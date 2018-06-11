@@ -3,11 +3,10 @@ if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
 }
 
-const Combell = require('../index.js');
-
+const combell = require('../dist/index.js');
 // get /v2/accounts
 // result is always an array of account objects
 // even when an error is thrown you will get an empty array
-Combell.getAccounts().then(result => result);
+combell.account.index().then(result => console.log(result));
 
 module.exports = {};
