@@ -1,4 +1,4 @@
-import { account } from './lib/combell'
+import { account } from './dist/index.esm.js'
 
 // example usage:
 // call index() to fetch all your accounts
