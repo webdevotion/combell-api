@@ -6,13 +6,13 @@ import gulp from 'gulp';
 
 var paths = {
   scripts: {
-    src: ['src/**/*.js','!src/test/**/*.js'],
-    dest: 'dist/'
+    src: ['lib/**/*.js'],
+    dest: 'lib/'
   }
 };
 
 function lint() {
-    return gulp.src(['./src/**/*.js','!node_modules/**'])
+    return gulp.src(['./lib/**/*.js','./index.js'])
         .pipe(eslint())
         // eslint.format() outputs the lint results to the console.
         .pipe(eslint.format())
