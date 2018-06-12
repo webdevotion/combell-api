@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+  <head>
+    <title>combell - get example</title>
+    <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css"/>
+  </head>
+  <body class="container">
+    <h1>combell.accounts.index</h1>
+    <ul id="accounts" class="list-unstyled"></ul>
+
+    <script src="/combell.umd.min.js"></script>
+    <script>
+      combell.account.index()
+        .then(function (response) {
+          document.getElementById('accounts').innerHTML = response.map(function (account) {
+            return (
+              '<li class="row">' +
+                '<h2>' + account.id + '</h2>' +
+                '<div class="col-md-3">' +
+                  '<strong>' + account.identifier + '</strong>' +
+                '</div>' +
+              '</li>'
+            );
+          }).join('');
+        })
+        .catch(function (err) {
+          document.getElementById('accounts').innerHTML = '<li class="text-danger">' + err.message + '</li>';
+        });
+    </script>
+  </body>
+</html>
