@@ -1,9 +1,9 @@
 {
   "name": "combell",
   "version": "0.1.4",
-  "main": "dist/index.js",
-  "module": "dist/index.esm.js",
-  "browser": "dist/index.umd.js",
+  "main": "dist/combell.min.js",
+  "module": "dist/combell.esm.min.js",
+  "browser": "dist/combell.umd.min.js",
   "license": "MIT",
   "directories": {
     "test": "./test"
@@ -12,7 +12,7 @@
     "node": ">=8.0.0"
   },
   "scripts": {
-    "combell": "node ./dist/index.js",
+    "combell": "node ./dist/combell.js",
     "start": "yarn run nodemon",
     "nodemon": "nodemon",
     "build-backup": "NODE_ENV=production webpack && bundlesize",
