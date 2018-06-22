@@ -3,7 +3,7 @@ if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
 }
 
-const combell = require('../../dist/index.js');
+const combell = require('../../dist/combell.min.js');
 // get /v2/accounts
 // result is always an array of account objects
 // even when an error is thrown you will get an empty array
