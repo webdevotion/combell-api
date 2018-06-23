@@ -1,8 +1,6 @@
 import pkg from './package.json'
 import path from 'path'
 
-
-
 import babel      from 'rollup-plugin-babel'
 import builtins   from 'rollup-plugin-node-builtins'
 import commonjs   from 'rollup-plugin-commonjs'
@@ -11,10 +9,17 @@ import license    from "rollup-plugin-license"
 import resolve    from 'rollup-plugin-node-resolve'
 import { terser } from "rollup-plugin-terser"
 
-let input = './lib/combell.js'
-let external = ['axios','dotenv']
-let babelExclude = ['node_modules/**','**/*.json']
+// how to use built in crypto with node js 8 and rollup
+// - use rollup plugin node builtins
+//     • and set { crypto: false } when calling builtins()
+// - define crypto as an external
+// - import { createHmac } from "crypto"; // for a lean import
+//     • call `createHmac` in stead of crypto.createHmac(...)
 
+let input = './lib/combell.js'
+let external = ['axios','dotenv','crypto'] // not included in built distribution files
+let babelExclude = ['node_modules/**','**/*.json']
+let globals = {} // example: { '_': 'lodash' }
 const minified = true
 const unminified = false
 
@@ -44,7 +49,7 @@ let terserPlugin = (stripComments) => {
 let plugins = (shouldMinify) => {
   let stripComments = true
   return [
-      builtins(),
+      builtins({crypto: false}),
       resolve(), // so Rollup can find dependencies
       json(), // so Rollup can handle axios' package.json
       babel({ exclude: babelExclude }),
@@ -53,29 +58,37 @@ let plugins = (shouldMinify) => {
   ].filter( p => p )
 }
 
-let outputExtension = (minify) => {
-  return minify ? minifiedJSFileExtension : jsFileExtension
+let outputExtension = (minifiedExtension) => {
+  return minifiedExtension ? minifiedJSFileExtension : jsFileExtension;
 }
 
-let commonJSOutput = (minify) => {
+let commonJSOutput = (compress) => {
+
+  // Since we are pointing to .min.js files in package.json
+  // we should find / replace .min.js with .js extensions.
+
+  const packageExt = outputExtension(true)
+  const outputExt = outputExtension( compress ? minified : unminified )
+
+  let main = pkg.main.replace( packageExt, outputExt)
+  let module = pkg.module.replace( packageExt, outputExt)
+
   return [
-    { file: pkg.main.replace(outputExtension(false), outputExtension(minify)),
-      format: 'cjs', exports: 'named' },
-    { file: pkg.module.replace(outputExtension(false), outputExtension(minify)),
-      format: 'es' }
+    { file: main,
+      format: 'cjs', exports: 'named', globals: globals },
+    { file: module,
+      format: 'es', globals: globals }
   ]
 }
 
-let umdOutput = (minify) => {
+let umdOutput = (compress) => {
   return {
     name: 'combell',
-    file: pkg.browser.replace(outputExtension(false), outputExtension(minify)),
+    file: pkg.browser.replace(outputExtension(true), outputExtension(compress ? minified : unminified)),
     format: 'umd',
     exports: 'named',
     moduleName: pkg.name,
-    globals: {
-      axios: 'axios'
-    }
+    globals: globals
   }
 }
 
@@ -97,6 +110,7 @@ let nodejsBuild = (shouldMinify) => {
   }
 }
 
+// exports an (un)minified version for each type of build
 export default [
   browserBuild( unminified ),
   browserBuild( minified ),
