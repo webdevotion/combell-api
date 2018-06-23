@@ -1,8 +1,6 @@
 import pkg from './package.json'
 import path from 'path'
 
-
-
 import babel      from 'rollup-plugin-babel'
 import builtins   from 'rollup-plugin-node-builtins'
 import commonjs   from 'rollup-plugin-commonjs'
@@ -11,8 +9,15 @@ import license    from "rollup-plugin-license"
 import resolve    from 'rollup-plugin-node-resolve'
 import { terser } from "rollup-plugin-terser"
 
+// how to use built in crypto with node js 8 and rollup
+// - use rollup plugin node builtins
+//     • and set { crypto: false } when calling builtins()
+// - define crypto as an external
+// - import { createHmac } from "crypto"; // for a lean import
+//     • call `createHmac` in stead of crypto.createHmac(...)
+
 let input = './lib/combell.js'
-let external = ['axios','dotenv'] // not included in built distribution files
+let external = ['axios','dotenv','crypto'] // not included in built distribution files
 let babelExclude = ['node_modules/**','**/*.json']
 let globals = {} // example: { '_': 'lodash' }
 const minified = true
@@ -44,7 +49,7 @@ let terserPlugin = (stripComments) => {
 let plugins = (shouldMinify) => {
   let stripComments = true
   return [
-      builtins(),
+      builtins({crypto: false}),
       resolve(), // so Rollup can find dependencies
       json(), // so Rollup can handle axios' package.json
       babel({ exclude: babelExclude }),
