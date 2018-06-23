@@ -22,6 +22,7 @@
  * SOFTWARE.
  */
 
+import { createHmac } from 'crypto';
 import axios from 'axios';
 
 function randomString(length) {
@@ -49,59 +50,77 @@ function epoch() {
 }
 
 // generates a base 64 hmac with given text and secret
-function hmacify(text, nonce) {
-  return crypto.createHmac('sha256', nonce).update(text).digest('base64');
+function hmacify(text, secret) {
+  return createHmac('sha256', secret).update(text).digest('base64');
 }
 
-const getApiKey = () => {
-  return '00000-00000-00000';
-};
+class Authorization {
+  constructor(key, secret) {
+    this.key = key;
+    this.secret = secret;
+  }
 
-// PRIVATE
-const options = (url, authHeaderValue) => ({
-  headers: {
-    Authorization: `hmac ${authHeaderValue}`,
-    'Content-Type': 'application/json'
-  },
-  url
-});
+  getApiKey() {
+    return this.key;
+  }
 
-const getEpoch = () => epoch();
+  getAPISecret() {
+    return this.secret;
+  }
 
-const getNonce = () => randomString(32);
+  getEpoch() {
+    return epoch();
+  }
 
-const getHmacInputText = input => concat(input, '');
+  getNonce() {
+    return randomString(32);
+  }
 
-function inputForHmac(apiKeyValue, endpoint, bodyHash) {
-  const httpMethod = endpoint.method;
-  const action = endpoint.path;
-  const epoch$$1 = getEpoch();
-  const nonce = getNonce();
-  const concatenated = getHmacInputText([apiKeyValue, httpMethod, action, epoch$$1, nonce, bodyHash]);
-  return {
-    text: concatenated,
-    epoch: epoch$$1,
-    nonce
-  };
+  getHmacInputText(input) {
+    return concat(input, '');
+  }
+
+  options(url, authHeaderValue) {
+    return {
+      headers: {
+        Authorization: `hmac ${authHeaderValue}`,
+        'Content-Type': 'application/json'
+      },
+      url
+    };
+  }
+
+  inputForHmac(apiKeyValue, endpoint, bodyHash) {
+    const httpMethod = endpoint.method;
+    const action = encodeURIComponent(endpoint.path);
+    const epoch$$1 = this.getEpoch();
+    const nonce = this.getNonce();
+    const secret = this.getAPISecret();
+
+    const concatenated = this.getHmacInputText([apiKeyValue, httpMethod, action, epoch$$1, nonce, bodyHash]);
+    return {
+      text: concatenated,
+      epoch: epoch$$1,
+      nonce,
+      secret
+    };
+  }
+
+  authorizationHeaderValue(apiKeyValue, endpoint) {
+    const bodyHash = null; // no body request at the moment, must be null
+    const hmacParams = this.inputForHmac(apiKeyValue, endpoint, bodyHash);
+    const generatedHmac = hmacify(hmacParams.text, hmacParams.secret);
+
+    // https://api.combell.com/v2/documentation#section/Authentication/Sending-an-authorized-request
+    // > your_api_key:generated_hmac:nonce:unix_timestamp
+    return concat([apiKeyValue, generatedHmac, hmacParams.nonce, hmacParams.epoch], ':');
+  }
+
+  headers(endpoint) {
+    const val = this.authorizationHeaderValue(this.getApiKey(), endpoint);
+    return this.options(endpoint.url, val);
+  }
 }
-function authorizationHeaderValue(apiKeyValue, endpoint) {
-  const bodyHash = ''; // empty, no body request at the moment
-  const hmacParams = inputForHmac(apiKeyValue, endpoint, bodyHash);
-  const generatedHmac = hmacify(hmacParams.text, hmacParams.nonce);
-
-  // https://api.combell.com/v2/documentation#section/Authentication/Sending-an-authorized-request
-  // > your_api_key:generated_hmac:nonce:unix_timestamp
-  return concat([apiKeyValue, generatedHmac, hmacParams.nonce, hmacParams.epoch], ':');
-}
-function headers(endpoint) {
-  const val = authorizationHeaderValue(getApiKey(), endpoint);
-  return options(endpoint.url, val);
-}
-
-var authorization = /*#__PURE__*/Object.freeze({
-  inputForHmac: inputForHmac,
-  headers: headers
-});
 
 const endpoints = {
   ACCOUNTS: '/accounts'
@@ -206,22 +225,40 @@ async function index(auth) {
   return get(endpoint$$1.url, headers);
 }
 
-// returns empty array if catching an error
-// thrown by the accounts module
-const getAccounts = async () => {
-  try {
-    return await index(authorization);
-  } catch (e) {
-    // send thrown error to handler to properly tackle the issue
-    throw e;
+class Combell {
+  constructor(apiKey, apiSecret) {
+    this.key = apiKey;
+    this.secret = apiSecret;
   }
-};
 
-const account = {
-  index: getAccounts
-};
+  // waiting for a future implementation where we can
+  // for example warn the user about this issue by logging
+  // or by invoking an error handler
+  async errors(e) {
+    switch (e.message) {
+      case 'authentication':
+        break;
+      default:
+        throw e;
+        break;
+    }
+  }
 
-var combell = { account };
+  // returns an authentication instance for use in API calls
+  auth() {
+    return new Authorization(this.key, this.secret);
+  }
 
-export default combell;
-export { account };
+  // returns empty array if catching an error
+  // thrown by the accounts module
+  async getAccounts() {
+    try {
+      return await index(this.auth());
+    } catch (e) {
+      // send thrown error to handler to properly tackle the issue
+      throw e;
+    }
+  }
+}
+
+export default Combell;
