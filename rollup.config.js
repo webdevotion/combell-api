@@ -17,7 +17,7 @@ import { terser } from "rollup-plugin-terser"
 //     • call `createHmac` in stead of crypto.createHmac(...)
 
 let input = './lib/combell.js'
-let external = ['axios','dotenv','crypto'] // not included in built distribution files
+let external = ['axios', 'crypto'] // not included in built distribution files
 let babelExclude = ['node_modules/**','**/*.json']
 let globals = {} // example: { '_': 'lodash' }
 const minified = true
