@@ -1,17 +1,22 @@
-import * as chai from 'chai';
+import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
+const { expect } = chai.use(chaiAsPromised);
+
 import nock from 'nock';
 import rewire from 'rewire';
 
-const { expect } = chai;
+const router = rewire('../../../lib/core/router');
+const subject = rewire('../../../lib/core/accounts');
 
-chai.use(chaiAsPromised);
-
-const router = rewire('../../combell/router');
-const subject = rewire('../../combell/accounts');
-const auth = rewire('../../combell/authorization');
+import Authorization from '../../../lib/core/authorization'
 
 describe('Accounts', () => {
+  let authentication
+
+  beforeEach( () => {
+    authentication = new Authorization('0','0')
+  })
+
   describe('test non 200 http status codes', () => {
     const endpoint = router.endpoint(router.endpoints.ACCOUNTS);
 
@@ -21,7 +26,7 @@ describe('Accounts', () => {
         .get(endpoint.path)
         .reply(404);
 
-      expect(subject.index(auth)).to.be.rejectedWith(Error);
+      expect(subject.index(authentication)).to.be.rejectedWith(Error);
     });
   });
 
@@ -32,13 +37,13 @@ describe('Accounts', () => {
 
     it('should return all accounts for this user', async () => {
       // nock will release the matched http request after each call
-      api = nock(router.baseUrl, { requestHeaders: auth.headers(endpoint) });
+      api = nock(router.baseUrl, { requestHeaders: authentication.headers(endpoint) });
 
       api
         .get(endpoint.path)
         .reply(200, nockData);
 
-      const response = await subject.index(auth);
+      const response = await subject.index(authentication);
       chai.expect(response.status).to.eq(200);
 
       const { data } = response;
@@ -60,7 +65,7 @@ describe('Accounts', () => {
         .get(endpoint.path)
         .reply(401);
 
-      expect(subject.index(auth)).to.be.rejectedWith(Error, 'authentication');
+      expect(subject.index(authentication)).to.be.rejectedWith(Error, 'authentication');
     });
   });
 });

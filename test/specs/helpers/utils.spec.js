@@ -4,7 +4,7 @@ import rewire from 'rewire';
 const { expect } = chai;
 
 // require becomes rewire when using 'rewire'
-const subject = rewire('../utils');
+const subject = rewire('../../../lib/helpers/utils');
 
 describe('Utils', () => {
   describe('random string generator', () => {
