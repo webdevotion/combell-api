@@ -38,6 +38,8 @@ $ yarn run combell
   ✨  Done in 0.66s.
 ```
 
+For an example integration for your project check [`examples/node/index.js`](https://github.com/webdevotion/combell-api/blob/778d20a94b061400ca59658dd9956fc2caa1587c/examples/node/index.js).
+
 ## Notice
 
 The library only allows calling `/v2/accounts/index` in the current release.  
