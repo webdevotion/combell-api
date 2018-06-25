@@ -4,8 +4,8 @@
 
 Combell API client for node.js. [Combell.be](https://combell.be) is a Belgian hosting provider used by a client of mine. When I noticed the API ( [documented here](https://api.combell.com/v2/documentation) ) while working in the control panel I finally found an interesting, personal, learning project.
 
-I hope my effort proofs to be useful for other node.js projects or as a learning resource.
--- Bram Plessers
+    I hope my effort proofs to be useful for other node.js projects or as a learning resource.
+    -- Bram Plessers
 
 ## Example Usage
 
@@ -15,6 +15,30 @@ I hope my effort proofs to be useful for other node.js projects or as a learning
 - build the project by running `gulp scripts` ( which avoids `eslint` )
 - copy `.env.example` to `.env` and edit it's contents ( [get your api key here](https://my.combell.com) )
 - run the main entry point with `yarn run combell` 
+
+```bash
+$ yarn run combell
+
+  [ { id: 012345, identifier: 'some.domain.tld' },
+    { id: 012345, identifier: 'some.domain.tld' },
+    { id: 012345, identifier: 'some.domain.tld' },
+    { id: 012345, identifier: 'some.domain.tld' },
+    { id: 012345, identifier: 'some.domain.tld' },
+    { id: 012345, identifier: 'some.domain.tld' },
+    { id: 012345, identifier: 'some.domain.tld' },
+    { id: 012345, identifier: 'some.domain.tld' },
+    { id: 012345, identifier: 'some.domain.tld' },
+    { id: 012345, identifier: 'some.domain.tld' },
+    { id: 012345, identifier: 'some.domain.tld' },
+    { id: 012345, identifier: 'some.domain.tld' },
+    { id: 012345, identifier: 'some.domain.tld' },
+    { id: 012345, identifier: 'some.domain.tld' },
+    { id: 012345, identifier: 'some.domain.tld' },
+    { id: 012345, identifier: 'some.domain.tld' } ]
+  ✨  Done in 0.66s.
+```
+
+For an example integration for your project check [`examples/node/index.js`](https://github.com/webdevotion/combell-api/blob/778d20a94b061400ca59658dd9956fc2caa1587c/examples/node/index.js).
 
 ## Notice
 
