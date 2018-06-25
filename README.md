@@ -18,11 +18,5 @@ I hope my effort proofs to be useful for other node.js projects or as a learning
 
 ## Notice
 
-This is an early release with one big problem: 
-the much needed HMAC authorization header is malformed.
-
-The default behaviour of the current iteration of this project is a whole lot of nothing for two reasons: 
-1. the `authentication` error is catched in `combell.js` and gracefully handled
-2. when an error is catched, `combell.js` will return an empty array
-
-Better output and error handling hooks are ( probably ) coming. For now we might want to get that HMAC authorization header in order.
+The library only allows calling `/v2/accounts/index` in the current release.  
+Additional endpoints are fairly easy to add.
