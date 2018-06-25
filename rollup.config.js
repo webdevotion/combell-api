@@ -17,12 +17,18 @@ import { terser } from "rollup-plugin-terser"
 //     • call `createHmac` in stead of crypto.createHmac(...)
 
 let input = './lib/combell.js'
-let external = ['axios','dotenv','crypto'] // not included in built distribution files
+let external = ['axios', 'crypto'] // not included in built distribution files
 let babelExclude = ['node_modules/**','**/*.json']
 let globals = {} // example: { '_': 'lodash' }
+let babelConfig = {
+  babelrc: false,
+  presets: [['env', { modules: false }]],
+  exclude: babelExclude,
+  plugins: ["external-helpers"]
+}
+
 const minified = true
 const unminified = false
-
 const jsFileExtension = '.js'
 const minifiedJSFileExtension = '.min' + jsFileExtension
 
@@ -46,13 +52,25 @@ let terserPlugin = (stripComments) => {
   return terser({ie8: false, sourceMap: true, output: {comments: comments}})
 }
 
-let plugins = (shouldMinify) => {
+let plugins = (shouldMinify,isCommonJSBuild) => {
+  let b = babelConfig;
+  let c = null;
+
+  if( isCommonJSBuild ){
+    b.plugins = ["external-helpers","transform-runtime"];
+    b.runtimeHelpers = true;
+    c = commonjs({ include: "node_modules/**" });
+  }else{
+    b.runtimeHelpers = false;
+  }
+
   let stripComments = true
   return [
       builtins({crypto: false}),
       resolve(), // so Rollup can find dependencies
       json(), // so Rollup can handle axios' package.json
-      babel({ exclude: babelExclude }),
+      c,
+      babel( b ),
       shouldMinify ? terserPlugin(stripComments) : null,
       licensify()
   ].filter( p => p )
@@ -97,7 +115,7 @@ let browserBuild = (shouldMinify) => {
     input: input,
     external: external,
     output: umdOutput(shouldMinify),
-    plugins: plugins(shouldMinify)
+    plugins: plugins(shouldMinify,false)
   }
 }
 
@@ -106,7 +124,7 @@ let nodejsBuild = (shouldMinify) => {
     input: input,
     external: external,
     output: commonJSOutput(shouldMinify),
-    plugins: plugins(shouldMinify)
+    plugins: plugins(shouldMinify,true)
   }
 }
 

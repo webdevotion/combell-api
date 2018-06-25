@@ -1,11 +1,12 @@
 {
   "presets": [
-    ["env", {
-      "modules": false,
-      "targets": {
-        "node": "current"
+    [
+      "env", {
+        "targets": {
+          "node": "current"
+        }
       }
-    }]
+    ]
   ],
-  "plugins": ["external-helpers"]
+  "plugins": ["istanbul"]
 }
