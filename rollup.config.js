@@ -20,6 +20,13 @@ let input = './lib/combell.js'
 let external = ['axios', 'crypto'] // not included in built distribution files
 let babelExclude = ['node_modules/**','**/*.json']
 let globals = {} // example: { '_': 'lodash' }
+let babelConfig = {
+  babelrc: false,
+  presets: [['env', { modules: false }]],
+  exclude: babelExclude,
+  plugins: ["external-helpers"]
+}
+
 const minified = true
 const unminified = false
 
@@ -52,7 +59,7 @@ let plugins = (shouldMinify) => {
       builtins({crypto: false}),
       resolve(), // so Rollup can find dependencies
       json(), // so Rollup can handle axios' package.json
-      babel({ exclude: babelExclude }),
+      babel( babelConfig ),
       shouldMinify ? terserPlugin(stripComments) : null,
       licensify()
   ].filter( p => p )
