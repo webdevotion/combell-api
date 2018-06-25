@@ -16,6 +16,28 @@ I hope my effort proofs to be useful for other node.js projects or as a learning
 - copy `.env.example` to `.env` and edit it's contents ( [get your api key here](https://my.combell.com) )
 - run the main entry point with `yarn run combell` 
 
+```bash
+$ yarn run combell
+
+  [ { id: 012345, identifier: 'some.domain.tld' },
+    { id: 012345, identifier: 'some.domain.tld' },
+    { id: 012345, identifier: 'some.domain.tld' },
+    { id: 012345, identifier: 'some.domain.tld' },
+    { id: 012345, identifier: 'some.domain.tld' },
+    { id: 012345, identifier: 'some.domain.tld' },
+    { id: 012345, identifier: 'some.domain.tld' },
+    { id: 012345, identifier: 'some.domain.tld' },
+    { id: 012345, identifier: 'some.domain.tld' },
+    { id: 012345, identifier: 'some.domain.tld' },
+    { id: 012345, identifier: 'some.domain.tld' },
+    { id: 012345, identifier: 'some.domain.tld' },
+    { id: 012345, identifier: 'some.domain.tld' },
+    { id: 012345, identifier: 'some.domain.tld' },
+    { id: 012345, identifier: 'some.domain.tld' },
+    { id: 012345, identifier: 'some.domain.tld' } ]
+  ✨  Done in 0.66s.
+```
+
 ## Notice
 
 The library only allows calling `/v2/accounts/index` in the current release.  
