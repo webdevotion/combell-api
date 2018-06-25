@@ -31,10 +31,10 @@
   axios = axios && axios.hasOwnProperty('default') ? axios['default'] : axios;
 
   function randomString(length) {
-    let text = '';
-    const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var text = '';
+    var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
-    for (let i = 0; i < length; i += 1) {
+    for (var i = 0; i < length; i += 1) {
       text += possible.charAt(Math.floor(Math.random() * possible.length));
     }
 
@@ -59,89 +59,160 @@
     return crypto.createHmac('sha256', secret).update(text).digest('base64');
   }
 
-  class Authorization {
-    constructor(key, secret) {
+  var asyncToGenerator = function (fn) {
+    return function () {
+      var gen = fn.apply(this, arguments);
+      return new Promise(function (resolve, reject) {
+        function step(key, arg) {
+          try {
+            var info = gen[key](arg);
+            var value = info.value;
+          } catch (error) {
+            reject(error);
+            return;
+          }
+
+          if (info.done) {
+            resolve(value);
+          } else {
+            return Promise.resolve(value).then(function (value) {
+              step("next", value);
+            }, function (err) {
+              step("throw", err);
+            });
+          }
+        }
+
+        return step("next");
+      });
+    };
+  };
+
+  var classCallCheck = function (instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  };
+
+  var createClass = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];
+        descriptor.enumerable = descriptor.enumerable || false;
+        descriptor.configurable = true;
+        if ("value" in descriptor) descriptor.writable = true;
+        Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }
+
+    return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);
+      if (staticProps) defineProperties(Constructor, staticProps);
+      return Constructor;
+    };
+  }();
+
+  var Authorization = function () {
+    function Authorization(key, secret) {
+      classCallCheck(this, Authorization);
+
       this.key = key;
       this.secret = secret;
     }
 
-    getApiKey() {
-      return this.key;
-    }
+    createClass(Authorization, [{
+      key: 'getApiKey',
+      value: function getApiKey() {
+        return this.key;
+      }
+    }, {
+      key: 'getApiSecret',
+      value: function getApiSecret() {
+        return this.secret;
+      }
+    }, {
+      key: 'getEpoch',
+      value: function getEpoch() {
+        return epoch();
+      }
+    }, {
+      key: 'getNonce',
+      value: function getNonce() {
+        return randomString(32);
+      }
+    }, {
+      key: 'getHmacInputText',
+      value: function getHmacInputText(input) {
+        return concat(input, '');
+      }
+    }, {
+      key: 'options',
+      value: function options(url, authHeaderValue) {
+        return {
+          headers: {
+            Authorization: 'hmac ' + authHeaderValue,
+            'Content-Type': 'application/json'
+          },
+          url: url
+        };
+      }
+    }, {
+      key: 'inputForHmac',
+      value: function inputForHmac(apiKeyValue, endpoint, bodyHash) {
+        var httpMethod = endpoint.method;
+        var action = encodeURIComponent(endpoint.path);
+        var epoch$$1 = this.getEpoch();
+        var nonce = this.getNonce();
+        var secret = this.getApiSecret();
 
-    getAPISecret() {
-      return this.secret;
-    }
+        var concatenated = this.getHmacInputText([apiKeyValue, httpMethod, action, epoch$$1, nonce, bodyHash]);
+        return {
+          text: concatenated,
+          epoch: epoch$$1,
+          nonce: nonce,
+          secret: secret
+        };
+      }
+    }, {
+      key: 'authorizationHeaderValue',
+      value: function authorizationHeaderValue(apiKeyValue, endpoint) {
+        var bodyHash = null; // no body request at the moment, must be null
+        var hmacParams = this.inputForHmac(apiKeyValue, endpoint, bodyHash);
+        var generatedHmac = hmacify(hmacParams.text, hmacParams.secret);
 
-    getEpoch() {
-      return epoch();
-    }
+        // https://api.combell.com/v2/documentation#section/Authentication/Sending-an-authorized-request
+        // > your_api_key:generated_hmac:nonce:unix_timestamp
+        return concat([apiKeyValue, generatedHmac, hmacParams.nonce, hmacParams.epoch], ':');
+      }
+    }, {
+      key: 'headers',
+      value: function headers(endpoint) {
+        var val = this.authorizationHeaderValue(this.getApiKey(), endpoint);
+        return this.options(endpoint.url, val);
+      }
+    }]);
+    return Authorization;
+  }();
 
-    getNonce() {
-      return randomString(32);
-    }
-
-    getHmacInputText(input) {
-      return concat(input, '');
-    }
-
-    options(url, authHeaderValue) {
-      return {
-        headers: {
-          Authorization: `hmac ${authHeaderValue}`,
-          'Content-Type': 'application/json'
-        },
-        url
-      };
-    }
-
-    inputForHmac(apiKeyValue, endpoint, bodyHash) {
-      const httpMethod = endpoint.method;
-      const action = encodeURIComponent(endpoint.path);
-      const epoch$$1 = this.getEpoch();
-      const nonce = this.getNonce();
-      const secret = this.getAPISecret();
-
-      const concatenated = this.getHmacInputText([apiKeyValue, httpMethod, action, epoch$$1, nonce, bodyHash]);
-      return {
-        text: concatenated,
-        epoch: epoch$$1,
-        nonce,
-        secret
-      };
-    }
-
-    authorizationHeaderValue(apiKeyValue, endpoint) {
-      const bodyHash = null; // no body request at the moment, must be null
-      const hmacParams = this.inputForHmac(apiKeyValue, endpoint, bodyHash);
-      const generatedHmac = hmacify(hmacParams.text, hmacParams.secret);
-
-      // https://api.combell.com/v2/documentation#section/Authentication/Sending-an-authorized-request
-      // > your_api_key:generated_hmac:nonce:unix_timestamp
-      return concat([apiKeyValue, generatedHmac, hmacParams.nonce, hmacParams.epoch], ':');
-    }
-
-    headers(endpoint) {
-      const val = this.authorizationHeaderValue(this.getApiKey(), endpoint);
-      return this.options(endpoint.url, val);
-    }
-  }
-
-  const endpoints = {
+  var endpoints = {
     ACCOUNTS: '/accounts'
   };
 
-  const baseUrl = 'https://api.combell.com';
-  const version = () => '/v2';
+  var baseUrl = 'https://api.combell.com';
+  var version = function version() {
+    return '/v2';
+  };
 
-  const endpointify = (method, path) => ({
-    method,
-    path: version() + path,
-    url: baseUrl + version() + path
-  });
+  var endpointify = function endpointify(method, path) {
+    return {
+      method: method,
+      path: version() + path,
+      url: baseUrl + version() + path
+    };
+  };
 
-  const endpoint = point => {
-    const GET = 'get';
+  var endpoint = function endpoint(point) {
+    var GET = 'get';
     switch (point) {
       case endpoints.ACCOUNTS:
         return endpointify(GET, '/accounts');
@@ -150,7 +221,7 @@
     }
   };
 
-  const contexts = {
+  var contexts = {
     general: {
       context: 'general_error'
     },
@@ -168,8 +239,9 @@
     }
   };
 
-  const errorcontext = error => {
-    const { status } = error.response;
+  var errorcontext = function errorcontext(error) {
+    var status = error.response.status;
+
 
     switch (status) {
       case 401:
@@ -178,7 +250,7 @@
         break;
     }
 
-    let e = error.response.data.error_code;
+    var e = error.response.data.error_code;
     // not able to find an error code in axios response object
     if (!e) {
       // we have no clue what happened, throw general error
@@ -199,14 +271,14 @@
   };
 
   // error is just axios' response object
-  const errorhandler = error => {
+  var errorhandler = function errorhandler(error) {
     if (error.response) {
       // The request was made and the server responded with a status code
       // that falls out of the range of 2xx
       // console.log(error.request.headers)
       // console.log(error.response.status)
       // console.log(error.response.headers)
-      const context = errorcontext(error);
+      var context = errorcontext(error);
       return new Error(context);
     } else if (error.request) {
       // The request was made but no response w2as received
@@ -218,20 +290,57 @@
     return new Error(contexts.general.context);
   };
 
-  async function get(url, headers) {
-    return axios.get(url, headers).catch(error => {
-      throw errorhandler(error);
-    });
-  }
+  var get$1 = function () {
+    var _ref = asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(url, headers) {
+      return regeneratorRuntime.wrap(function _callee$(_context) {
+        while (1) {
+          switch (_context.prev = _context.next) {
+            case 0:
+              return _context.abrupt('return', axios.get(url, headers).catch(function (error) {
+                throw errorhandler(error);
+              }));
 
-  async function index(auth) {
-    const endpoint$$1 = endpoint(endpoints.ACCOUNTS);
-    const headers = auth.headers(endpoint$$1);
-    return get(endpoint$$1.url, headers);
-  }
+            case 1:
+            case 'end':
+              return _context.stop();
+          }
+        }
+      }, _callee, this);
+    }));
 
-  class Combell {
-    constructor(apiKey, apiSecret) {
+    return function get$$1(_x, _x2) {
+      return _ref.apply(this, arguments);
+    };
+  }();
+
+  var index = function () {
+    var _ref = asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(auth) {
+      var endpoint$$1, headers;
+      return regeneratorRuntime.wrap(function _callee$(_context) {
+        while (1) {
+          switch (_context.prev = _context.next) {
+            case 0:
+              endpoint$$1 = endpoint(endpoints.ACCOUNTS);
+              headers = auth.headers(endpoint$$1);
+              return _context.abrupt('return', get$1(endpoint$$1.url, headers));
+
+            case 3:
+            case 'end':
+              return _context.stop();
+          }
+        }
+      }, _callee, this);
+    }));
+
+    return function index(_x) {
+      return _ref.apply(this, arguments);
+    };
+  }();
+
+  var Combell = function () {
+    function Combell(apiKey, apiSecret) {
+      classCallCheck(this, Combell);
+
       this.key = apiKey;
       this.secret = apiSecret;
     }
@@ -239,32 +348,89 @@
     // waiting for a future implementation where we can
     // for example warn the user about this issue by logging
     // or by invoking an error handler
-    async errors(e) {
-      switch (e.message) {
-        case 'authentication':
-          break;
-        default:
-          throw e;
-          break;
-      }
-    }
 
-    // returns an authentication instance for use in API calls
-    auth() {
-      return new Authorization(this.key, this.secret);
-    }
 
-    // returns empty array if catching an error
-    // thrown by the accounts module
-    async getAccounts() {
-      try {
-        return await index(this.auth());
-      } catch (e) {
-        // send thrown error to handler to properly tackle the issue
-        throw e;
+    createClass(Combell, [{
+      key: 'errors',
+      value: function () {
+        var _ref = asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(e) {
+          return regeneratorRuntime.wrap(function _callee$(_context) {
+            while (1) {
+              switch (_context.prev = _context.next) {
+                case 0:
+                  _context.t0 = e.message;
+                  _context.next = _context.t0 === 'authentication' ? 3 : 4;
+                  break;
+
+                case 3:
+                  return _context.abrupt('break', 6);
+
+                case 4:
+                  throw e;
+
+                case 6:
+                case 'end':
+                  return _context.stop();
+              }
+            }
+          }, _callee, this);
+        }));
+
+        function errors(_x) {
+          return _ref.apply(this, arguments);
+        }
+
+        return errors;
+      }()
+    }, {
+      key: 'auth',
+
+
+      // returns an authentication instance for use in API calls
+      value: function auth() {
+        return new Authorization(this.key, this.secret);
       }
-    }
-  }
+
+      // returns empty array if catching an error
+      // thrown by the accounts module
+
+    }, {
+      key: 'getAccounts',
+      value: function () {
+        var _ref2 = asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+          return regeneratorRuntime.wrap(function _callee2$(_context2) {
+            while (1) {
+              switch (_context2.prev = _context2.next) {
+                case 0:
+                  _context2.prev = 0;
+                  _context2.next = 3;
+                  return index(this.auth());
+
+                case 3:
+                  return _context2.abrupt('return', _context2.sent);
+
+                case 6:
+                  _context2.prev = 6;
+                  _context2.t0 = _context2['catch'](0);
+                  throw _context2.t0;
+
+                case 9:
+                case 'end':
+                  return _context2.stop();
+              }
+            }
+          }, _callee2, this, [[0, 6]]);
+        }));
+
+        function getAccounts() {
+          return _ref2.apply(this, arguments);
+        }
+
+        return getAccounts;
+      }()
+    }]);
+    return Combell;
+  }();
 
   exports.default = Combell;
 
