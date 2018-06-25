@@ -4,8 +4,8 @@
 
 Combell API client for node.js. [Combell.be](https://combell.be) is a Belgian hosting provider used by a client of mine. When I noticed the API ( [documented here](https://api.combell.com/v2/documentation) ) while working in the control panel I finally found an interesting, personal, learning project.
 
-I hope my effort proofs to be useful for other node.js projects or as a learning resource.
--- Bram Plessers
+    I hope my effort proofs to be useful for other node.js projects or as a learning resource.
+    -- Bram Plessers
 
 ## Example Usage
 
