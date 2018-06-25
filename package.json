@@ -22,7 +22,7 @@
     "nodemon": "nodemon",
     "release": "gulp scripts",
     "start": "yarn run nodemon",
-    "test": "cross-env NODE_ENV=test nyc --reporter=text mocha ./test/specs/combell/**/*.spec.js"
+    "test": "cross-env NODE_ENV=test nyc --reporter=text mocha --recursive ./test/"
   },
   "nyc": {
     "require": [
