@@ -1,21 +1,29 @@
-import * as chai from 'chai';
-
-import rewire from 'rewire';
-
+import chai from 'chai';
+import * as sinon from 'sinon';
 const { expect } = chai;
 
-const router = require('../../../lib/core/router');
+import * as router from '../../../lib/core/router';
 
-const subject = rewire('../../../lib/core/authorization');
+import Authorization from '../../../lib/core/authorization';
 
 describe('Authorization', () => {
-  describe('HMAC', () => {
-    const apiKey = '00000-00000-00000';
 
+  let subject
+  const apiKey = '00000-00000-00000';
+  const apiSecret = '00000-00000-00000';
+
+  beforeEach( () => {
+    
+  })
+
+  describe('HMAC', () => {
     it('should should provide correct input for hmac generator', () => {
-      subject.__set__('getEpoch', () => 0);
-      subject.__set__('getNonce', () => 'abcde');
-      subject.__set__('getApiKey', () => apiKey);
+      subject = new Authorization(apiKey,apiSecret)
+
+      let epochStub   = sinon.stub( subject, 'getEpoch' ).returns(0);
+      let nonceStub   = sinon.stub( subject, 'getNonce' ).returns('abcde');
+      let keyStub     = sinon.stub( subject, 'getApiKey' ).returns(apiKey);
+      let secretStub  = sinon.stub( subject, 'getApiSecret' ).returns(apiSecret);
 
       const endpoint = router.endpoint(router.endpoints.ACCOUNTS);
       const bodyHash = '';
@@ -25,16 +33,25 @@ describe('Authorization', () => {
 
       const hmacInput = subject.inputForHmac(apiKey, endpoint, bodyHash);
 
-      expect(hmacInput.text).to.eq(apiKey + httpMethod + endpoint.path + epoch + nonce + bodyHash);
       expect(hmacInput.epoch).to.eq(0);
+      expect(hmacInput.secret).to.eq(apiSecret);
       expect(hmacInput.nonce).to.eq('abcde');
+      expect(hmacInput.text).to.eq(apiKey + httpMethod + encodeURIComponent(endpoint.path) + epoch + nonce + bodyHash);
+
+      epochStub.restore(); 
+      nonceStub.restore(); 
+      keyStub.restore();   
+      secretStub.restore();
     });
 
 
     it('should use valid HMAC auth header', async () => {
-      subject.__set__('getEpoch', () => 0);
-      subject.__set__('getNonce', () => 'abcde');
-      subject.__set__('getApiKey', () => apiKey);
+      subject = new Authorization(apiKey,apiSecret)
+
+      let epochStub   = sinon.stub( subject, 'getEpoch' ).returns(0);
+      let nonceStub   = sinon.stub( subject, 'getNonce' ).returns('abcde');
+      let keyStub     = sinon.stub( subject, 'getApiKey' ).returns(apiKey);
+      let secretStub  = sinon.stub( subject, 'getApiSecret' ).returns(apiSecret);
 
       const endpoint = router.endpoint();
       const headers = subject.headers(endpoint);
@@ -54,6 +71,11 @@ describe('Authorization', () => {
       expect(hmac).to.not.be.null;
       expect(nonce).to.eq('abcde');
       expect(epoc).to.eq('0');
+
+      epochStub.restore(); 
+      nonceStub.restore(); 
+      keyStub.restore();   
+      secretStub.restore();
     });
   });
 });
