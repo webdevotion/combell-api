@@ -42,5 +42,6 @@ For an example integration for your project check [`examples/node/index.js`](htt
 
 ## Notice
 
-The library only allows calling `/v2/accounts/index` in the current release.  
-Additional endpoints are fairly easy to add.
+The library allows calling the `index` and `show` actions of `Account`, `Domain` and `Hosting`.  You can pass URL variables and / or query parameters, but the library's entry point ( `combell.js` ) acts as a wrapper to make things easier to use.
+
+Additional endpoints are in the making.
