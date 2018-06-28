@@ -2179,7 +2179,8 @@ var Authorization = function () {
       return {
         headers: {
           Authorization: 'hmac ' + authHeaderValue,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'User-Agent': 'combell-api-node-js'
         },
         url: url
       };
@@ -2223,31 +2224,240 @@ var Authorization = function () {
   return Authorization;
 }();
 
-var endpoints = {
-  ACCOUNTS: '/accounts'
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+// If obj.hasOwnProperty has been overridden, then calling
+// obj.hasOwnProperty(prop) will break.
+// See: https://github.com/joyent/node/issues/1707
+function hasOwnProperty$1(obj, prop) {
+  return Object.prototype.hasOwnProperty.call(obj, prop);
+}
+var isArray = Array.isArray || function (xs) {
+  return Object.prototype.toString.call(xs) === '[object Array]';
+};
+function stringifyPrimitive(v) {
+  switch (typeof v) {
+    case 'string':
+      return v;
+
+    case 'boolean':
+      return v ? 'true' : 'false';
+
+    case 'number':
+      return isFinite(v) ? v : '';
+
+    default:
+      return '';
+  }
+}
+
+function stringify (obj, sep, eq, name) {
+  sep = sep || '&';
+  eq = eq || '=';
+  if (obj === null) {
+    obj = undefined;
+  }
+
+  if (typeof obj === 'object') {
+    return map(objectKeys(obj), function(k) {
+      var ks = encodeURIComponent(stringifyPrimitive(k)) + eq;
+      if (isArray(obj[k])) {
+        return map(obj[k], function(v) {
+          return ks + encodeURIComponent(stringifyPrimitive(v));
+        }).join(sep);
+      } else {
+        return ks + encodeURIComponent(stringifyPrimitive(obj[k]));
+      }
+    }).join(sep);
+
+  }
+
+  if (!name) return '';
+  return encodeURIComponent(stringifyPrimitive(name)) + eq +
+         encodeURIComponent(stringifyPrimitive(obj));
+}
+function map (xs, f) {
+  if (xs.map) return xs.map(f);
+  var res = [];
+  for (var i = 0; i < xs.length; i++) {
+    res.push(f(xs[i], i));
+  }
+  return res;
+}
+
+var objectKeys = Object.keys || function (obj) {
+  var res = [];
+  for (var key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) res.push(key);
+  }
+  return res;
 };
 
-var baseUrl = 'https://api.combell.com';
+function parse(qs, sep, eq, options) {
+  sep = sep || '&';
+  eq = eq || '=';
+  var obj = {};
+
+  if (typeof qs !== 'string' || qs.length === 0) {
+    return obj;
+  }
+
+  var regexp = /\+/g;
+  qs = qs.split(sep);
+
+  var maxKeys = 1000;
+  if (options && typeof options.maxKeys === 'number') {
+    maxKeys = options.maxKeys;
+  }
+
+  var len = qs.length;
+  // maxKeys <= 0 means that we should not limit keys count
+  if (maxKeys > 0 && len > maxKeys) {
+    len = maxKeys;
+  }
+
+  for (var i = 0; i < len; ++i) {
+    var x = qs[i].replace(regexp, '%20'),
+        idx = x.indexOf(eq),
+        kstr, vstr, k, v;
+
+    if (idx >= 0) {
+      kstr = x.substr(0, idx);
+      vstr = x.substr(idx + 1);
+    } else {
+      kstr = x;
+      vstr = '';
+    }
+
+    k = decodeURIComponent(kstr);
+    v = decodeURIComponent(vstr);
+
+    if (!hasOwnProperty$1(obj, k)) {
+      obj[k] = v;
+    } else if (isArray(obj[k])) {
+      obj[k].push(v);
+    } else {
+      obj[k] = [obj[k], v];
+    }
+  }
+
+  return obj;
+}var querystring = {
+  encode: stringify,
+  stringify: stringify,
+  decode: parse,
+  parse: parse
+};
+
+var endpoints = {
+  ACCOUNTS: '/accounts',
+  DOMAINS: '/domains',
+  HOSTINGS: '/linuxhostings'
+};
+
+var baseURL = 'https://api.combell.com';
 var version = function version() {
   return '/v2';
 };
 
+var combineURL = function combineURL(base, relative) {
+  return relative ? base.replace(/\/+$/, '') + '/' + relative.replace(/^\/+/, '') : base;
+};
+
+/**
+ * Creates a valid path components string from an array of {string|object}
+ * by combining API Endpoint path, URL components and URL query params
+ *
+ * @param {Object[]} components Array of strings or numbers
+ * @returns {String} valid string of path components delimited with '/'
+ */
+var pathComponentsify = function pathComponentsify(components) {
+  components = components ? components : [];
+
+  return components.filter(function (pc) {
+    return pc;
+  }) // get rid of nulls
+  .map(function (pc) {
+    return String(pc).trim();
+  }) // get rid of leading & trailing whitspace
+  .map(encodeURIComponent) // encode each path component
+  .join("/"); // join path components into one string with / delimiter
+};
+
+var paramsify = function paramsify(params) {
+  if (params == null) {
+    return "";
+  }
+
+  return "?" + querystring.stringify(params);
+};
+
 var endpointify = function endpointify(method, path) {
+  var pathComponents = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
+  var urlParams = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
+
+  pathComponents = pathComponentsify(pathComponents);
+
+  var params = paramsify(urlParams);
+  var prefix = version() + path;
+  var relativeURL = combineURL(prefix, pathComponents + params);
+  var fullURL = combineURL(baseURL, relativeURL);
+
   return {
     method: method,
-    path: version() + path,
-    url: baseUrl + version() + path
+    path: relativeURL,
+    url: fullURL
   };
 };
 
+/**
+ * Creates a new endpoint object 
+ * by combining API Endpoint path, URL components and URL query params
+ *
+ * @param {string} point Relative path to the API endpoint w/o path variables
+ * @param {String[]} pathComponents Additional URL components
+ * @param {Object.<string,string|number>} urlParams Object with properties 
+ *  to be added as query params
+ * @returns { method, path, url } an ( anonymous ) Endpoint object 
+ */
 var endpoint = function endpoint(point) {
+  var pathComponents = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+  var urlParams = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+
   var GET = 'get';
+
   switch (point) {
     case endpoints.ACCOUNTS:
-      return endpointify(GET, '/accounts');
+      return endpointify(GET, point, pathComponents, urlParams);
+    case endpoints.DOMAINS:
+      return endpointify(GET, point, pathComponents, urlParams);
+    case endpoints.HOSTINGS:
+      return endpointify(GET, point, pathComponents, urlParams);
     default:
-      return endpointify(GET, '');
+      break;
   }
+
+  return endpointify(GET, '');
 };
 
 var contexts = {
@@ -2320,16 +2530,17 @@ var errorhandler = function errorhandler(error) {
 };
 
 var get$1 = function () {
-  var _ref = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee(url, headers) {
+  var _ref = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee(url, config) {
     return regenerator.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            return _context.abrupt('return', axios.get(url, headers).catch(function (error) {
+            config.method = "get";
+            return _context.abrupt('return', axios(config).catch(function (error) {
               throw errorhandler(error);
             }));
 
-          case 1:
+          case 2:
           case 'end':
             return _context.stop();
         }
@@ -2342,18 +2553,23 @@ var get$1 = function () {
   };
 }();
 
+var ENDPOINT = endpoints.ACCOUNTS;
+
 var index = function () {
   var _ref = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee(auth) {
-    var endpoint$$1, headers;
+    var components = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+    var params = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+    var endpoint$$1, headers, config;
     return regenerator.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            endpoint$$1 = endpoint(endpoints.ACCOUNTS);
+            endpoint$$1 = endpoint(ENDPOINT, components, params);
             headers = auth.headers(endpoint$$1);
-            return _context.abrupt('return', get$1(endpoint$$1.url, headers));
+            config = headers;
+            return _context.abrupt('return', get$1(endpoint$$1.url, config));
 
-          case 3:
+          case 4:
           case 'end':
             return _context.stop();
         }
@@ -2361,8 +2577,129 @@ var index = function () {
     }, _callee, this);
   }));
 
-  return function index(_x) {
+  return function index(_x3) {
     return _ref.apply(this, arguments);
+  };
+}();
+
+var show = function () {
+  var _ref2 = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee2(auth, id) {
+    return regenerator.wrap(function _callee2$(_context2) {
+      while (1) {
+        switch (_context2.prev = _context2.next) {
+          case 0:
+            return _context2.abrupt('return', this.index(auth, [id], null));
+
+          case 1:
+          case 'end':
+            return _context2.stop();
+        }
+      }
+    }, _callee2, this);
+  }));
+
+  return function show(_x4, _x5) {
+    return _ref2.apply(this, arguments);
+  };
+}();
+
+var ENDPOINT$1 = endpoints.DOMAINS;
+
+var index$1 = function () {
+  var _ref = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee(auth) {
+    var components = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+    var params = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+    var endpoint$$1, headers, config;
+    return regenerator.wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            endpoint$$1 = endpoint(ENDPOINT$1, components, params);
+            headers = auth.headers(endpoint$$1);
+            config = headers;
+            return _context.abrupt('return', get$1(endpoint$$1.url, config));
+
+          case 4:
+          case 'end':
+            return _context.stop();
+        }
+      }
+    }, _callee, this);
+  }));
+
+  return function index(_x3) {
+    return _ref.apply(this, arguments);
+  };
+}();
+
+var show$1 = function () {
+  var _ref2 = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee2(auth, id) {
+    return regenerator.wrap(function _callee2$(_context2) {
+      while (1) {
+        switch (_context2.prev = _context2.next) {
+          case 0:
+            return _context2.abrupt('return', this.index(auth, [id], null));
+
+          case 1:
+          case 'end':
+            return _context2.stop();
+        }
+      }
+    }, _callee2, this);
+  }));
+
+  return function show(_x4, _x5) {
+    return _ref2.apply(this, arguments);
+  };
+}();
+
+var ENDPOINT$2 = endpoints.HOSTINGS;
+
+var index$2 = function () {
+  var _ref = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee(auth) {
+    var components = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+    var params = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+    var endpoint$$1, headers, config;
+    return regenerator.wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            endpoint$$1 = endpoint(ENDPOINT$2, components, params);
+            headers = auth.headers(endpoint$$1);
+            config = headers;
+            return _context.abrupt('return', get$1(endpoint$$1.url, config));
+
+          case 4:
+          case 'end':
+            return _context.stop();
+        }
+      }
+    }, _callee, this);
+  }));
+
+  return function index(_x3) {
+    return _ref.apply(this, arguments);
+  };
+}();
+
+var show$2 = function () {
+  var _ref2 = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee2(auth, id) {
+    return regenerator.wrap(function _callee2$(_context2) {
+      while (1) {
+        switch (_context2.prev = _context2.next) {
+          case 0:
+            return _context2.abrupt('return', this.index(auth, [id], null));
+
+          case 1:
+          case 'end':
+            return _context2.stop();
+        }
+      }
+    }, _callee2, this);
+  }));
+
+  return function show(_x4, _x5) {
+    return _ref2.apply(this, arguments);
   };
 }();
 
@@ -2392,12 +2729,12 @@ var Combell = function () {
                 break;
 
               case 3:
-                return _context.abrupt('break', 6);
+                return _context.abrupt('break', 5);
 
               case 4:
                 throw e;
 
-              case 6:
+              case 5:
               case 'end':
                 return _context.stop();
             }
@@ -2456,6 +2793,116 @@ var Combell = function () {
       }
 
       return getAccounts;
+    }()
+  }, {
+    key: 'getAccount',
+    value: function () {
+      var _ref3 = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee3(id) {
+        return regenerator.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                if (!(id == null)) {
+                  _context3.next = 2;
+                  break;
+                }
+
+                throw new Error('requires one parameter of type Number');
+
+              case 2:
+                _context3.prev = 2;
+                _context3.next = 5;
+                return show(this.auth(), id);
+
+              case 5:
+                return _context3.abrupt('return', _context3.sent);
+
+              case 8:
+                _context3.prev = 8;
+                _context3.t0 = _context3['catch'](2);
+                throw _context3.t0;
+
+              case 11:
+              case 'end':
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this, [[2, 8]]);
+      }));
+
+      function getAccount(_x2) {
+        return _ref3.apply(this, arguments);
+      }
+
+      return getAccount;
+    }()
+  }, {
+    key: 'getDomains',
+    value: function () {
+      var _ref4 = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee4() {
+        return regenerator.wrap(function _callee4$(_context4) {
+          while (1) {
+            switch (_context4.prev = _context4.next) {
+              case 0:
+                _context4.prev = 0;
+                _context4.next = 3;
+                return index$1(this.auth());
+
+              case 3:
+                return _context4.abrupt('return', _context4.sent);
+
+              case 6:
+                _context4.prev = 6;
+                _context4.t0 = _context4['catch'](0);
+                throw _context4.t0;
+
+              case 9:
+              case 'end':
+                return _context4.stop();
+            }
+          }
+        }, _callee4, this, [[0, 6]]);
+      }));
+
+      function getDomains() {
+        return _ref4.apply(this, arguments);
+      }
+
+      return getDomains;
+    }()
+  }, {
+    key: 'getHostings',
+    value: function () {
+      var _ref5 = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee5() {
+        return regenerator.wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                _context5.prev = 0;
+                _context5.next = 3;
+                return index$2(this.auth());
+
+              case 3:
+                return _context5.abrupt('return', _context5.sent);
+
+              case 6:
+                _context5.prev = 6;
+                _context5.t0 = _context5['catch'](0);
+                throw _context5.t0;
+
+              case 9:
+              case 'end':
+                return _context5.stop();
+            }
+          }
+        }, _callee5, this, [[0, 6]]);
+      }));
+
+      function getHostings() {
+        return _ref5.apply(this, arguments);
+      }
+
+      return getHostings;
     }()
   }]);
 
