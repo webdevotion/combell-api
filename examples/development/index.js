@@ -21,12 +21,12 @@ const dumpError = (err) => {
   }
 }
 
+// minimal illustration for error handling
 const getAccountWithNonExistingID = () => {
   // let's fail on purpose by requesting information of Account with id 1
   // Combell's API returns 404 when the record is not found
   // When requesting id 0 the API returns all accounts without filtering on id
-  let failOnPurpose = combell.getAccount(1);
-  failOnPurpose.catch(dumpError);
+  let failOnPurpose = combell.getAccount(1).catch(dumpError);
 }
 
 let key     = process.env.COMBELL_API_KEY;
@@ -51,7 +51,7 @@ let account = combell.getAccounts()
 account
   .then( a => {
     console.log('\n====================\n');
-    console.log(a);
+    console.log('first account found: ', a);
     console.log('\n====================\n');
     getAccountWithNonExistingID();
   })
