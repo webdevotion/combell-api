@@ -51,7 +51,7 @@ let account = combell.getAccounts()
 account
   .then( a => {
     console.log('\n====================\n');
-    console.log(a);
+    console.log('first account found: ', a);
     console.log('\n====================\n');
     getAccountWithNonExistingID();
   })
